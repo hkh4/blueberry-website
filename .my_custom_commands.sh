@@ -1,6 +1,5 @@
 function pspdf() {
   ps2pdf -dNOSAFER $1.ps
-  open $1.pdf
 }
 
 function blbscore() {
