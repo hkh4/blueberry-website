@@ -9,7 +9,7 @@ router.post("/test", async (req, res, next) => {
 
     console.log(data)
 
-    exec("open test.txt", (error, stdout, stderr) => {
+    exec("cat test.txt", (error, stdout, stderr) => {
       if (error) {
         console.log(`error ${error.message}`)
       }
