@@ -1,5 +1,6 @@
 const router = require("express").Router()
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
+
 
 router.post("/test", async (req, res, next) => {
 
@@ -9,7 +10,18 @@ router.post("/test", async (req, res, next) => {
 
     console.log(data)
 
-    exec("cat test.txt", (error, stdout, stderr) => {
+    // exec(`echo $'${data}' > test.blb & cat test.blb & cd ~ & echo $(pwd)`, (error, stdout, stderr) => {
+    //   if (error) {
+    //     console.log(`error ${error.message}`)
+    //   }
+    //   if (stderr) {
+    //     console.log(`stderror ${stderr}`)
+    //   }
+    //
+    //   console.log(`stdout ${stdout}`)
+    // })
+
+    execFile(__dirname + '/command.sh', (error, stdout, stderr) => {
       if (error) {
         console.log(`error ${error.message}`)
       }
