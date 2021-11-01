@@ -10,7 +10,7 @@ router.post("/test", async (req, res, next) => {
 
     console.log(data)
 
-    exec(`echo $'${data}' > test.blb & cat test.blb`, (error, stdout, stderr) => {
+    exec(`echo '${data}' > test.blb & cat test.blb`, (error, stdout, stderr) => {
       if (error) {
         console.log(`error ${error.message}`)
       }

@@ -1,7 +1,7 @@
 #!/bin/bash
 cwd=$(pwd)
 OUTFILE='score'
-cd ~/blueberry_lang
+cd ~/Desktop/D/nosync.nosync/CS/blueberry-site/blueberry_lang
 dotnet run score $cwd/test.blb $OUTFILE
 if [ "$?" -eq "0" ]
 then
