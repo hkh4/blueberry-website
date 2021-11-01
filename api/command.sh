@@ -9,5 +9,4 @@ then
   rm $OUTFILE.ps
   mv $OUTFILE.pdf $cwd
   cd $cwd
-  open $OUTFILE.pdf
 fi
