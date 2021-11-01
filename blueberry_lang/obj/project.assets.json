@@ -205,11 +205,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/hugohua/Desktop/D/nosync.nosync/CS/blueberry/lang/proj.fsproj",
+      "projectUniqueName": "/Users/hugohua/Desktop/D/nosync.nosync/CS/blueberry-site/blueberry_lang/proj.fsproj",
       "projectName": "proj",
-      "projectPath": "/Users/hugohua/Desktop/D/nosync.nosync/CS/blueberry/lang/proj.fsproj",
+      "projectPath": "/Users/hugohua/Desktop/D/nosync.nosync/CS/blueberry-site/blueberry_lang/proj.fsproj",
       "packagesPath": "/Users/hugohua/.nuget/packages/",
-      "outputPath": "/Users/hugohua/Desktop/D/nosync.nosync/CS/blueberry/lang/obj/",
+      "outputPath": "/Users/hugohua/Desktop/D/nosync.nosync/CS/blueberry-site/blueberry_lang/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/hugohua/.nuget/NuGet/NuGet.Config"
