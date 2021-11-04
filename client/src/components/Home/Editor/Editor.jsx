@@ -3,12 +3,14 @@ import axios from "axios"
 import "quill/dist/quill.snow.css"
 import Quill from "quill"
 import { io } from "socket.io-client"
+import { Document, Page } from 'react-pdf';
 
 
 function Editor() {
 
   const [quill, setQuill] = useState()
   const [socket, setSocket] = useState()
+  const [pdf, setPdf] = useState()
 
   async function test() {
 
@@ -16,11 +18,39 @@ function Editor() {
     console.log(contents)
     let text = contents.ops[0].insert
     console.log(text)
-    const result = await axios.post("/api/test", {
+    const response = await axios.post("/api/test", {
       data: text
     })
 
-    console.log(result)
+    const fileName = response.data.fileName
+
+    if (!response.data.success) {
+      // Something???
+    }
+
+    const fileResponse = await axios.get("/api/test", {
+      params: {
+        fileName
+      },
+      responseType: "blob"
+    })
+
+    const file = new Blob([fileResponse.data], {
+      type: "application/pdf"
+    })
+
+    const fileURL = URL.createObjectURL(file)
+    setPdf(fileURL)
+    //window.open(fileURL)
+
+    // delete the pdf
+    const deleteResponse = await axios.delete("/api/test", {
+      data: {
+        fileName
+      }
+    })
+
+    console.log(deleteResponse)
 
   }
 
@@ -86,6 +116,10 @@ function Editor() {
     <div>
       <div id="container" ref={wrapperRef}></div>
       <button onClick={test}>Click</button>
+      {
+        pdf && <embed src={pdf} type="application/pdf" width="500px" height="1000px" />
+      }
+
     </div>
   )
 
