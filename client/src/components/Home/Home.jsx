@@ -3,7 +3,7 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 
 import Loading from "./../Loading/Loading"
 
-const Editor = lazy(() => import("./Editor/Editor"))
+const Document = lazy(() => import("./Document/Document"))
 
 function Home() {
 
@@ -12,7 +12,7 @@ function Home() {
       <Switch>
 
         <Route path="/">
-          <Editor />
+          <Document />
         </Route>
 
       </Switch>

@@ -2,6 +2,8 @@ import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 import axios from 'axios'
 
+import "./App.scss"
+
 import Loading from "./components/Loading/Loading"
 
 const Home = lazy(() => import("./components/Home/Home"))
