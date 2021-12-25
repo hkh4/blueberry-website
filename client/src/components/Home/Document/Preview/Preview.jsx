@@ -1,27 +1,45 @@
-import React, { useRef, useState } from "react"
-import blueberry from "./../../../../blueberry/program.ts"
+import React, { useRef, useState, useEffect } from "react"
+import blueberry from "./../../../../blueberry/program.tsx"
 
 function Preview({ input }) {
 
-  const [svg, setSVG] = useState(<svg viewBox="0 0 200 200"></svg>)
+  const [svg, setSVG] = useState(<svg></svg>)
+  const [error, setError] = useState("")
 
+  // When the input changes, call blueberry to parse
+  useEffect(() => {
 
+    setError("")
+    const result = blueberry("score", input)
 
-  function foo() {
-    return <text x="50" y="50">From foo</text>
-  }
+    // if the return type is a string, then it's an error
+    if (typeof result === "string") {
+      setError(result)
+    } else {
+      setSVG(result)
+    }
 
-  function test() {
-    const res = foo()
-    const x = <svg height="100" width="100" viewBox="0 0 200 200">
-      {res}
-    </svg>
-    setSVG(x)
-  }
+  }, [input])
+
+  // const [svg, setSVG] = useState(<svg viewBox="0 0 200 200"></svg>)
+  //
+  //
+  //
+  // function foo() {
+  //   return <text x="50" y="50">From foo</text>
+  // }
+  //
+  // function test() {
+  //   const res = foo()
+  //   const x = <svg height="100" width="100" viewBox="0 0 200 200">
+  //     {res}
+  //   </svg>
+  //   setSVG(x)
+  // }
 
   return (
     <div id="preview">
-      <button onClick={test}>Test</button>
+      {error && <h3>{error}</h3>}
       {svg}
     </div>
   )
