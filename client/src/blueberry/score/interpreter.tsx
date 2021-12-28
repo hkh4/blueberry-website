@@ -1,8 +1,12 @@
-import { ScoreOption, ParserMeasure, OptionsRecord } from "./types"
+import { ScoreOption, OptionsRecord, Expr } from "./types"
 import { evalOptions } from "./options"
+import { evalMeasures } from "./divide"
 
-//********************* Main Driver
-export default function interpret(options: ScoreOption[], measures: ParserMeasure[]) {
+/********************* Main Driver
+1. options: options at the beginning of the document
+2. elements: measures, and possible key/capo/time change options within
+*/
+export default function interpret(options: ScoreOption[], elements: Expr[]) {
 
   // Default options
   const defaultOptions : OptionsRecord = {
@@ -16,7 +20,10 @@ export default function interpret(options: ScoreOption[], measures: ParserMeasur
   }
 
   // First, parse the options
-  const [newOption, defaultRhythm] = evalOptions(options, defaultOptions)
+  const [optionsR, defaultRhythm] = evalOptions(options, defaultOptions)
+
+  // Next, evaluate the measures
+  const measures = evalMeasures(elements, optionsR, defaultRhythm)
 
   return <svg></svg>
 

@@ -121,20 +121,20 @@ export type Comment = {
   comment: string
 }
 
-export type HiddenComment = {
-  kind: "hiddenComment"
-}
+// NOTE: in this version, there are no hidden comments. They are just ignored when parsed
 
-export type ParserNote = Simple | Complex | Group | Tuplet | Comment | HiddenComment
+export type ParserNote = Simple | Complex | Group | Tuplet | Comment
 
 
 // ******* Expr
 export type ScoreOption = {
+  kind: "scoreOption",
   option: string,
   value: string
 }
 
 export type ParserMeasure = {
+  kind: "parserMeasure"
   measureNumber: number,
   notes: ParserNote[]
 }
@@ -144,7 +144,7 @@ export type Expr = ScoreOption | ParserMeasure
 // ****************************** Interpreter export types
 
 export type OptionsRecord = {
-  time: [number, number],
+  time: [number, RhythmNumber],
   key: Key,
   capo: Ints,
   title: string,
@@ -204,7 +204,7 @@ export type Buffer = {
 
 export type TimeChange = {
   kind: "timeChange",
-  newTime: [number, number]
+  newTime: [number, RhythmNumber]
 }
 
 export type Notehead = SingleNote | GroupNote | TupletNote | Rest | Barline | Empty | Buffer | TimeChange
@@ -214,7 +214,7 @@ export type Element = {
   duration: Rhythm,
   start: number,
   width: number,
-  lastNote: number,
+  lastNote: boolean,
   location: [number, number],
   graceNotes: Element[],
   comments: string
@@ -222,7 +222,7 @@ export type Element = {
 
 export type Measure = {
   key: Key,
-  time: Rhythm,
+  time: [number, RhythmNumber],
   capo: Ints,
   measureNumber: number,
   elements: Element[],

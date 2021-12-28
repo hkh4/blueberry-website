@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import blueberry from "./../../../../blueberry/program.tsx"
 
 function Preview({ input }) {

@@ -1,4 +1,4 @@
-import { ScoreOption, Rhythm, RhythmNumber, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, HiddenComment, ParserMeasure } from "./types"
+import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure } from "./types"
 const P = require("parsimmon")
 
 const word = P.takeWhile(input => {
@@ -37,6 +37,7 @@ const optionIdentifier = P.string("-")
 
 const singleOption = P.seqMap(optionIdentifier, restOfLine, P.newline, function(option, value, newline) {
   const result: ScoreOption = {
+    kind: "scoreOption",
     option,
     value
   }
@@ -178,7 +179,6 @@ const stringNum = P.test(c => {
   .map(Number)
   .desc("1, 2, 3, 4, 5 or 6 to indicate which string of the guitar")
 
-const noteTemplate = P.seq(stringNum, pitch)
 
 const singleSimple = P.seqMap(stringNum, pitch, anyProperties, (str, p, props) => {
   const x : SingleSimple = {
@@ -280,26 +280,21 @@ const comment = P.string("$")
   })
 
 const hiddenComment = P.string("%")
-  .then(P.takeWhile(c => {
+  .skip(P.takeWhile(c => {
     const p = ["%", "\r", "\n", "\r\n"]
     return !p.includes(c)
   }))
   .skip(P.string("%"))
-  .map(() => {
-    const x : HiddenComment = {
-      kind: "hiddenComment"
-    }
-    return x
-  })
 
-const hiddenCommentInvisible = P.string("%")
-  .then(P.takeWhile(c => {
+
+const hiddenCommentEmptyLines = P.string("%")
+  .skip(P.takeWhile(c => {
     const p = ["%", "\r", "\n", "\r\n"]
     return !p.includes(c)
   }))
   .skip(P.string("%"))
   .skip(emptyLines)
-  .map(() => "")
+
 
 
 
@@ -310,12 +305,15 @@ const note = emptySpaces1
 
 const multipleNotesInMeasure = note.atLeast(1)
 
-const measure = hiddenCommentInvisible
+const measure = hiddenCommentEmptyLines
   .atMost(1)
   .then(P.seqMap(measureNumber, multipleNotesInMeasure, spaces, (num, notes, spaces) => {
+    // get rid of hidden comments
+    const notesNoHiddenComments = notes.filter(n => n !== "%")
     const x : ParserMeasure = {
+      kind: "parserMeasure",
       measureNumber: num,
-      notes: notes
+      notes: notesNoHiddenComments
     }
     return x
   }))

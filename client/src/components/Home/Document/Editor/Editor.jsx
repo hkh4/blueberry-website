@@ -1,9 +1,7 @@
-import { useCallback, useRef, useState, useEffect } from "react"
-import axios from "axios"
+import { useCallback, useState, useEffect } from "react"
 import "quill/dist/quill.snow.css"
 import Quill from "quill"
 import { io } from "socket.io-client"
-import { Document, Page } from 'react-pdf';
 
 
 function Editor({ setInput }) {
