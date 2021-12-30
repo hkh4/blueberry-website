@@ -157,7 +157,7 @@ export type NormalGuitarNote = {
   singleNoteKind: "normalGuitarNote",
   string: GuitarString,
   pitch: Pitch,
-  fret: Ints,
+  fret: number,
   eitherProperties: EitherProperty[]
 }
 

@@ -156,6 +156,10 @@ export function evalOptions(options: ScoreOption[], optionsR: OptionsRecord) : [
 */
 export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMeasureNumber: number) : [OptionsRecord, "time" | "key" | "capo"] {
 
+  let newOptionsR : OptionsRecord = {
+    ...optionsR
+  }
+
   const { option, value } = o
 
   // See what type of option it is
@@ -166,7 +170,7 @@ export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMea
         throw new Error(`Invalid key in key change after measure ${lastMeasureNumber}! Valid keys are c, cm, c#, c#m, cb, d, dm, db, d#m, e, em, eb, ebm, f, fm, f#, f#m, g, gm, gb, g#m, a, am, ab, abm, a#m, b, bm, bb, bbm`)
       }
 
-      optionsR.key = value
+      newOptionsR.key = value
       break;
 
     case "time":
@@ -192,7 +196,7 @@ export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMea
         throw new Error(`Error in the time change after measure ${lastMeasureNumber}! The bottom number of the time signature must be 1, 2, 4, 8, 16, 32, or 64`)
       }
 
-      optionsR.time = [top, bottom]
+      newOptionsR.time = [top, bottom]
 
       break;
 
@@ -203,7 +207,7 @@ export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMea
         throw new Error(`Error in the capo change after measure ${lastMeasureNumber}! Must be a number from 0-20.`)
       }
 
-      optionsR.capo = capo
+      newOptionsR.capo = capo
 
       break;
 
@@ -211,6 +215,6 @@ export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMea
       throw new Error(`Invalid option after measure ${lastMeasureNumber}! The only options that can be changed between measures are the time, key, or capo.`)
   }
 
-  return [optionsR, option]
+  return [newOptionsR, option]
 
 }

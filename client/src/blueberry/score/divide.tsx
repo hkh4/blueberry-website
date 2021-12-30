@@ -1,6 +1,6 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Simple, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Simple, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest } from "./types"
 import { evalInnerOption } from "./options"
-import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth } from "./constants"
+import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth } from "./constants"
 
 
 
@@ -32,22 +32,139 @@ function divideProperties(props: Property[]) : [EitherProperty[], MultiProperty[
 
 
 
+/* Change the pitch based on the key
+1. pitch: written pitch of the note
+2. key: key for this note
+RETURNS new pitch
+*/
+function parseKey(pitch: Pitch, key: Key) : Pitch {
+
+  // First, get the right part of the key change object
+  const keyObj = keyChange[key]
+
+  // See if the pitch needs to be changed
+  if (keyObj[pitch]) {
+    return keyObj[pitch]
+  } else {
+    return pitch
+  }
+
+}
+
+
+
+
+
+/* Calculate what fret a certain note should be on
+1. guitarString: what string is this note on
+2. pitch: pitch of the note
+3. capo: what the capo is currently set to
+4. tuningNumbers: describes how the guitar is tuned
+5. eProps: the EitherProperty list of this note. Used to check if there's an up fret or not
+RETURNS the fret
+*/
+function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tuningNumbers: number[], eProps: EitherProperty[]) : number {
+
+  let fretByPitch : number;
+
+  switch (pitch) {
+
+    case "e":
+    case "en":
+    case "fb":
+      fretByPitch = 0
+      break;
+    case "f":
+    case "fn":
+    case "e#":
+      fretByPitch = 1
+      break;
+    case "f#":
+    case "gb":
+      fretByPitch = 2
+      break;
+    case "g":
+    case "gn":
+      fretByPitch = 3
+      break;
+    case "g#":
+    case "ab":
+      fretByPitch = 4
+      break;
+    case "a":
+    case "an":
+      fretByPitch = 5
+      break;
+    case "a#":
+    case "bb":
+      fretByPitch = 6
+      break;
+    case "b":
+    case "bn":
+    case "cb":
+      fretByPitch = 7
+      break;
+    case "c":
+    case "cn":
+    case "b#":
+      fretByPitch = 8
+      break;
+    case "c#":
+    case "db":
+      fretByPitch = 9
+      break;
+    case "d":
+    case "dn":
+      fretByPitch = 10
+      break;
+    case "d#":
+    case "eb":
+      fretByPitch = 11
+      break;
+    default:
+      throw new Error("Internal error in calculateFret. nopitch shouldn't show up here.")
+
+  }
+
+  // take the capo into account
+  const fretByCapo = (fretByPitch + (12 - capo)) % 12
+
+  // then, adjust based on which string it's on, and what the tuning is
+  let fret = (fretByCapo + tuningNumbers[guitarString - 1]) % 12
+
+  // If this note has the ^ property, add 12
+  if (eProps.includes("^")) {
+    fret += 12
+  }
+
+  return fret
+
+}
+
+
+
+
 /* Parse a simple note or rest
 1. measureNumber
 2. note: the simple note being parsed
 3. baseBeat: bottom number of time signature
 4. numberOfBeats: top number of time signature
-5. nextStart: what beat this note starts on in the measure
-6. last: is it the last note in the measure?
-7. optionsR: OptionsRecord with options information
-8. defaultRhythm: rhythm to be used if none is given on a note
+5. last: is it the last note in the measure?
+6. optionsR: OptionsRecord with options information
+7. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new element, and whether or not it's a grace note
 */
-function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber, numberOfBeats: number, nextStart: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean] {
+function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber, numberOfBeats: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean] {
+
+  let isGrace : boolean;
+
+  let element : Element;
 
   switch (note.simpleKind) {
 
     case "singleSimple":
+
+      let singleNote : SingleNote;
 
       // Divide the properties
       const [eProps, mProps] = divideProperties(note.properties)
@@ -56,17 +173,178 @@ function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber
       let notePortion : Note;
 
       if (note.pitch === "nopitch") {
-        
+
+        // x note
+        notePortion = {
+          singleNoteKind: "x",
+          string: note.string,
+          eitherProperties: eProps
+        }
+
       } else {
 
+        const newPitch = parseKey(note.pitch, optionsR.key)
+
+        // normalguitarnote
+        // Get the fret
+        const fret = calculateFret(note.string, newPitch, optionsR.capo, optionsR.tuningNumbers, eProps)
+
+        notePortion = {
+          singleNoteKind: "normalGuitarNote",
+          string: note.string,
+          pitch: newPitch,
+          fret: fret,
+          eitherProperties: eProps
+        }
+
+      }
+
+      singleNote = {
+        kind: "singleNote",
+        note: notePortion,
+        multiProperties: mProps
+      }
+
+      // Check to see if it's a grace note
+      isGrace = mProps.includes("gra")
+
+      // If it's a grace note AND the last note, throw an error, since the last note of a measure cannot be a grace note
+      if (isGrace && last) {
+        throw new Error(`Error in measure ${measureNumber}! The last note of a measure can't be a grace note.`)
+      }
+
+
+      element = {
+        noteInfo: singleNote,
+        duration: defaultRhythm,  // a simple note just uses whatever the default rhythm is, since none was given
+        start: 0.0, // just a default temporary value
+        width: 0.0,
+        lastNote: last,
+        location: [0.0, 0.0],
+        graceNotes: [],
+        comments: ""
       }
 
       break;
 
     case "restSimple":
+
+      const rest : Rest = {
+        kind: "rest"
+      }
+
+      element = {
+        noteInfo: rest,
+        duration: defaultRhythm,
+        start: 0.0,
+        width: 0.0,
+        lastNote: last,
+        location: [0.0, 0.0],
+        graceNotes: [],
+        comments: ""
+      }
+
+      isGrace = false
+
+      break;
+
   }
 
-  return [bufferElement, false] //TEMP
+  return [element, isGrace]
+
+}
+
+
+
+/* Calculate the width of a note, and how much rhythm space it takes
+1. element: the note
+2. nextStart: the starting beat for this note
+3. baseBeat: bottom number of time signature
+4. numberOfBeats: top number of time signature
+5. isGrace: whether or not this note is a grace note
+RETURNS the updated element, and the new start for the next note
+*/
+function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber, numberOfBeats: number, isGrace: boolean) : [Element, number] {
+
+  // First, get the rhythm out of the element and make sure it's no a "norhythm"
+  const rhythm = element.duration
+  if (rhythm === "norhythm") {
+    throw new Error("Internal error in widthStart. None of these notes should have a duration of 'norhythm'")
+  }
+
+  // Take care of the grace note case first
+  if (isGrace) {
+    const stringVersion = rhythm.toString()
+    const width = graceWidths[stringVersion]
+
+    // Just find the width and return, the start doesn't matter for grace notes
+    let newElement : Element = {
+      ...element,
+      width: width
+    }
+
+    return [newElement, nextStart]
+  }
+
+  const [rhythmNumber, dots] = rhythm
+
+  // Take care of the 0 rhythm first
+  if (rhythmNumber === 0) {
+
+    const width = widths['0,0']
+
+    let newElement : Element = {
+      ...element,
+      width: width
+    }
+
+    return [newElement, numberOfBeats + 1]
+
+  }
+
+  // Figure out how many beats this note's rhythm takes, based on the time signature
+  const indexOfBeat = arrayOfRhythms.indexOf(baseBeat)
+  const indexOfRhythm = arrayOfRhythms.indexOf(rhythmNumber)
+
+  /* Calculate how many beats. Find the difference in indexes between the two. Then, raise 2 to this power
+  e.g. if the baseBeat is 4 and the rhythm is 8, it should be half a beat. The index of 4 is 2, the index of 8 is 3
+  2-3 = -1. 2^-1 = 1/2!
+  */
+  const diff = indexOfBeat - indexOfRhythm
+  let totalRhythm = Math.pow(2, diff)
+
+  // If there are dots, change the rhythm
+  switch (dots) {
+    case 1:
+      totalRhythm *= 1.5
+      break;
+    case 2:
+      totalRhythm *= 1.75
+      break;
+    case 3:
+      totalRhythm *= 1.875
+      break;
+  }
+
+  const newNextStart = totalRhythm + nextStart
+
+  // Get the width
+  const stringVersion = rhythm.toString()
+  let width = widths[stringVersion]
+
+  // If this is the last note, make sure the width meets the minimum
+  if (element.lastNote && width < minimumLastWidth) {
+    width = minimumLastWidth
+  }
+
+  // New element
+  const newElement : Element = {
+    ...element,
+    width: width,
+    start: nextStart
+  }
+
+  return [newElement, newNextStart]
 
 }
 
@@ -82,18 +360,19 @@ function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber
 6. last: is it the last note in the measure?
 7. optionsR: OptionsRecord with options information
 8. defaultRhythm: rhythm to be used if none is given on a note
-RETURNS the new element, its width, and whether or not it's a grace note
+RETURNS the new element, the new nextStart, and whether or not it's a grace note
 */
 function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumber, numberOfBeats: number, nextStart: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, number, boolean] {
 
   let element : Element;
   let isGrace : boolean;
 
+  // Parse the note
   switch (note.kind) {
 
     case "simple":
 
-      [element, isGrace] = parseSimple(measureNumber, note, baseBeat, numberOfBeats, nextStart, last, optionsR, defaultRhythm)
+      [element, isGrace] = parseSimple(measureNumber, note, baseBeat, numberOfBeats, last, optionsR, defaultRhythm)
 
       break;
     // case "complex":
@@ -107,9 +386,62 @@ function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumbe
 
   }
 
+  if (element.duration === "norhythm") {
+    throw new Error("Internal error in evalNote. None of these notes should have a duration of 'norhythm'")
+  }
 
+  // Make sure the rhythm is valid, and there are the right number of dots
+  const [rhythm, dots] = element.duration
 
-  return [bufferElement, 0.0, false]
+  switch (rhythm) {
+    case 0:
+      if (dots > 0) throw new Error(`Error in measure ${measureNumber}! A rest with rhythm 0 cannot have dots.`)
+      break;
+    case 64:
+      if (dots > 0) throw new Error(`Error in measure ${measureNumber}! A 64th note can't have dots.`)
+      break;
+    case 32:
+      if (dots > 1) throw new Error(`Error in measure ${measureNumber}! A 32nd note can only have up to 1 dot.`)
+      break;
+    case 16:
+      if (dots > 2) throw new Error(`Error in measure ${measureNumber}! A 16th note can only have up to 2 dots.`)
+      break;
+    case 8:
+    case 4:
+    case 2:
+    case 1:
+      if (dots > 3) throw new Error(`Error in measure ${measureNumber}! A note can have a maximum of 3 dots.`)
+      break;
+    default:
+      throw new Error("Internal error in evalNote. Reached unreachable case in switch")
+  }
+
+  // Call widthStart to figure out the width of the element, and how much time this note takes up in the measure.
+  let newElement : Element;
+  let newNextStart : number;
+
+  [newElement, newNextStart] = widthStart(element, nextStart, baseBeat, numberOfBeats, isGrace)
+
+  if (newElement.lastNote) {
+
+    // If it's the last note, need to make sure the total rhythm is the right number
+    if (newNextStart > (numberOfBeats + 1.0)) {
+      throw new Error(`Error! Too many beats in measure ${measureNumber}`)
+
+    } else if ((newNextStart < numberOfBeats + 1.0) && (measureNumber !== 0)) {
+
+      // if there aren't enough beats AND it's not the first measure, error. First measure can have fewer because it can be a pick-up
+      throw new Error(`Error! Not enough beats in measure ${measureNumber}`)
+    }
+  } else {
+
+    // If it's not the last note, still make sure we aren't over the rhythm total
+    if (newNextStart > (numberOfBeats + 1.0)) {
+      throw new Error(`Error! Too many beats in measure ${measureNumber}`)
+    }
+  }
+
+  return [newElement, newNextStart, isGrace]
 
 }
 
@@ -135,7 +467,7 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
   let graceBefore : Element[] = []
 
   // Which beat the current note falls on
-  let nextStart = 0.0
+  let nextStart = 1.0
 
   // Total width of all elements in the measure
   let totalWidth = 0.0
@@ -255,6 +587,7 @@ function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, changes, default
     }
 
     elements.unshift(timeChangeElement)
+    width += timeChangeWidth
 
   }
 
@@ -310,6 +643,9 @@ export function evalMeasures(elements: Expr[], optionsR: OptionsRecord, defaultR
 
         // Call the helper
         const newMeasure = evalMeasure(p, optionsR, changes, defaultRhythm)
+
+        console.log("newMeasure")
+        console.log(newMeasure)
 
         measures.push(newMeasure)
         changes = {
