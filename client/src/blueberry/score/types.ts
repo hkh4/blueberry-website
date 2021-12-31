@@ -46,6 +46,12 @@ export type RhythmNumber = 0 | 1 | 2 | 4 | 8 | 16 | 32 | 64
 
 export type Rhythm = [RhythmNumber, number] | "norhythm"
 
+// check if it's [RhythmNumber, number]
+export function isRhythmNumberNumber(r: [RhythmNumber, number] | "norhythm") : r is [RhythmNumber, number] {
+  return (r !== "norhythm")
+}
+
+
 // check if number is a rhythmnumber
 export function isRhythmNumber(r: RhythmNumber | number) : r is RhythmNumber {
   return ([0, 1, 2, 4, 8, 16, 32, 64].includes(r))
@@ -208,6 +214,7 @@ export type TimeChange = {
 }
 
 export type Notehead = SingleNote | GroupNote | TupletNote | Rest | Barline | Empty | Buffer | TimeChange
+
 
 export type Element = {
   noteInfo: Notehead,

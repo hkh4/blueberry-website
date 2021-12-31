@@ -7,8 +7,16 @@
 // ********************* DOCUMENT
 
 // ******** Editor
-#container {
+.editor {
 
+  #container {
+    height: 50vh;
+  }
+
+  .compile {
+    position: relative;
+    top: 20px;
+  }
 }
 
 #preview {

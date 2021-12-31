@@ -1,4 +1,4 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Simple, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber } from "./types"
 import { evalInnerOption } from "./options"
 import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth } from "./constants"
 
@@ -8,7 +8,7 @@ import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeCha
 1. props: list of all properties to be divded
 RETURNS list of EitherProperties, list of MultiProperties
 */
-function divideProperties(props: Property[]) : [EitherProperty[], MultiProperty[]] {
+export function divideProperties(props: Property[]) : [EitherProperty[], MultiProperty[]] {
 
   let e : EitherProperty[] = []
   let m : MultiProperty[] = []
@@ -144,6 +144,83 @@ function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tun
 
 
 
+/* Helper for parseSimple and parseComplex. Creates and returns a SingleNote
+1. note: the note being parsed. Either a singlesimple or a singlecomplex
+2. optionsR: optionsrecord with all options info
+3. last: whether or not it's the last note in the measure
+4. rhythm: if it's a simple note, this is the default rhythm. If it's a complex note, it's the rhythm given to the note
+5. measureNumber: for debugging
+RETURNS the new element, and if this note is a grace note
+*/
+function createSingleNote(note: SingleSimple | SingleComplex, optionsR: OptionsRecord, last: boolean, rhythm: [RhythmNumber, number], measureNumber: number) : [Element, boolean] {
+
+  let singleNote : SingleNote;
+
+  // Divide the properties
+  const [eProps, mProps] = divideProperties(note.properties)
+
+  // Create the NoteInfo, based on if it should be an X note or a NormalGuitarNote
+  let notePortion : Note;
+
+  if (note.pitch === "nopitch") {
+
+    // x note
+    notePortion = {
+      singleNoteKind: "x",
+      string: note.string,
+      eitherProperties: eProps
+    }
+
+  } else {
+
+    const newPitch = parseKey(note.pitch, optionsR.key)
+
+    // normalguitarnote
+    // Get the fret
+    const fret = calculateFret(note.string, newPitch, optionsR.capo, optionsR.tuningNumbers, eProps)
+
+    notePortion = {
+      singleNoteKind: "normalGuitarNote",
+      string: note.string,
+      pitch: newPitch,
+      fret: fret,
+      eitherProperties: eProps
+    }
+
+  }
+
+  singleNote = {
+    kind: "singleNote",
+    note: notePortion,
+    multiProperties: mProps
+  }
+
+  // Check to see if it's a grace note
+  const isGrace : boolean = mProps.includes("gra")
+
+  // If it's a grace note AND the last note, throw an error, since the last note of a measure cannot be a grace note
+  if (isGrace && last) {
+    throw new Error(`Error in measure ${measureNumber}! The last note of a measure can't be a grace note.`)
+  }
+
+
+  const element : Element = {
+    noteInfo: singleNote,
+    duration: rhythm,
+    start: 0.0, // just a default temporary value
+    width: 0.0,
+    lastNote: last,
+    location: [0.0, 0.0],
+    graceNotes: [],
+    comments: ""
+  }
+
+  return [element, isGrace]
+}
+
+
+
+
 /* Parse a simple note or rest
 1. measureNumber
 2. note: the simple note being parsed
@@ -154,7 +231,7 @@ function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tun
 7. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new element, and whether or not it's a grace note
 */
-function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber, numberOfBeats: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean] {
+export function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber, numberOfBeats: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean] {
 
   let isGrace : boolean;
 
@@ -164,66 +241,7 @@ function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber
 
     case "singleSimple":
 
-      let singleNote : SingleNote;
-
-      // Divide the properties
-      const [eProps, mProps] = divideProperties(note.properties)
-
-      // Create the NoteInfo, based on if it should be an X note or a NormalGuitarNote
-      let notePortion : Note;
-
-      if (note.pitch === "nopitch") {
-
-        // x note
-        notePortion = {
-          singleNoteKind: "x",
-          string: note.string,
-          eitherProperties: eProps
-        }
-
-      } else {
-
-        const newPitch = parseKey(note.pitch, optionsR.key)
-
-        // normalguitarnote
-        // Get the fret
-        const fret = calculateFret(note.string, newPitch, optionsR.capo, optionsR.tuningNumbers, eProps)
-
-        notePortion = {
-          singleNoteKind: "normalGuitarNote",
-          string: note.string,
-          pitch: newPitch,
-          fret: fret,
-          eitherProperties: eProps
-        }
-
-      }
-
-      singleNote = {
-        kind: "singleNote",
-        note: notePortion,
-        multiProperties: mProps
-      }
-
-      // Check to see if it's a grace note
-      isGrace = mProps.includes("gra")
-
-      // If it's a grace note AND the last note, throw an error, since the last note of a measure cannot be a grace note
-      if (isGrace && last) {
-        throw new Error(`Error in measure ${measureNumber}! The last note of a measure can't be a grace note.`)
-      }
-
-
-      element = {
-        noteInfo: singleNote,
-        duration: defaultRhythm,  // a simple note just uses whatever the default rhythm is, since none was given
-        start: 0.0, // just a default temporary value
-        width: 0.0,
-        lastNote: last,
-        location: [0.0, 0.0],
-        graceNotes: [],
-        comments: ""
-      }
+      [element, isGrace] = createSingleNote(note, optionsR, last, defaultRhythm, measureNumber)
 
       break;
 
@@ -253,6 +271,70 @@ function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber
   return [element, isGrace]
 
 }
+
+
+
+
+/* Parse a complex note
+1. measureNumber
+2. note: the complex note being parsed
+3. baseBeat: bottom number of time signature
+4. numberOfBeats: top number of time signature
+5. last: is it the last note in the measure?
+6. optionsR: OptionsRecord with options information
+RETURNS the new element, whether or not it's a grace note, and the new default rhythm
+*/
+export function parseComplex(measureNumber: number, note: Complex, baseBeat: RhythmNumber, numberOfBeats: number, last: boolean, optionsR: OptionsRecord) : [Element, boolean, [RhythmNumber, number]] {
+
+  let isGrace : boolean;
+
+  let element : Element;
+
+  const rhythm : Rhythm = note.rhythm
+
+  // type checking
+  if (!isRhythmNumberNumber(rhythm)) {
+    throw new Error("Internal error in parseComplex. A complex note cannot have a rhythm of norhythm")
+  }
+
+  switch (note.complexKind) {
+
+    case "singleComplex":
+
+      [element, isGrace] = createSingleNote(note, optionsR, last, rhythm, measureNumber)
+
+      break;
+
+    case "restComplex":
+
+      const rest : Rest = {
+        kind: "rest"
+      }
+
+      element = {
+        noteInfo: rest,
+        duration: note.rhythm,
+        start: 0.0,
+        width: 0.0,
+        lastNote: last,
+        location: [0.0, 0.0],
+        graceNotes: [],
+        comments: ""
+      }
+
+      isGrace = false
+
+      break;
+
+  }
+
+  let newDefaultRhythm : [RhythmNumber, number] = rhythm
+
+  return [element, isGrace, newDefaultRhythm]
+
+}
+
+
 
 
 
@@ -360,9 +442,9 @@ function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber,
 6. last: is it the last note in the measure?
 7. optionsR: OptionsRecord with options information
 8. defaultRhythm: rhythm to be used if none is given on a note
-RETURNS the new element, the new nextStart, and whether or not it's a grace note
+RETURNS the new element, the new nextStart, whether or not it's a grace note, and the new default rhythm
 */
-function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumber, numberOfBeats: number, nextStart: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, number, boolean] {
+function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumber, numberOfBeats: number, nextStart: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, number, boolean, [RhythmNumber, number]] {
 
   let element : Element;
   let isGrace : boolean;
@@ -375,8 +457,11 @@ function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumbe
       [element, isGrace] = parseSimple(measureNumber, note, baseBeat, numberOfBeats, last, optionsR, defaultRhythm)
 
       break;
-    // case "complex":
-    //   break;
+    case "complex":
+
+      [element, isGrace, defaultRhythm] = parseComplex(measureNumber, note, baseBeat, numberOfBeats, last, optionsR)
+
+      break;
     // case "group":
     //   break;
     // case "tuplet":
@@ -441,7 +526,7 @@ function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumbe
     }
   }
 
-  return [newElement, newNextStart, isGrace]
+  return [newElement, newNextStart, isGrace, defaultRhythm]
 
 }
 
@@ -504,11 +589,11 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
     // if it's the last note
     if (realNoteCount === numberOfRealNotes) {
 
-      [newNote, nextStart, isGrace] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, true, optionsR, defaultRhythm)
+      [newNote, nextStart, isGrace, defaultRhythm] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, true, optionsR, defaultRhythm)
 
     } else {
       // not the last note
-      [newNote, nextStart, isGrace] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, false, optionsR, defaultRhythm)
+      [newNote, nextStart, isGrace, defaultRhythm] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, false, optionsR, defaultRhythm)
     }
 
     // increment how many notes have been seen
@@ -519,16 +604,60 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
       graceBefore.push(newNote)
 
     } else {
-      // If it's not a grace note, add the graceBefore list to the grace notes of the returned note. Set graceBefore to be empty
-      newNote.graceNotes = graceBefore
-      graceBefore = []
+      // Take care of grace notes
+      if (graceBefore.length > 0) {
+
+        const kind = newNote.noteInfo.kind
+
+        // if this note is a rest, throw an error, since rests can't have grace notes
+        if (kind === "rest") {
+          throw new Error(`Error in measure ${measureNumber}! Grace notes can't be added to a rest.`)
+
+        } else {
+
+          // add the widths of all the grace notes to the width of this note
+          const graceWidths = graceBefore.reduce((prev, current) => {
+            return prev + current.width
+          }, 0.0)
+
+          const totalWidth = newNote.width + graceWidths
+
+          newNote.width = totalWidth
+
+          // Add the buffer element
+          graceBefore.push(bufferElement)
+
+          // If the note is a tuplet, add the gracenotes to the first note of the tuplet
+          if (kind === "tupletNote") {
+
+            newNote.noteInfo.notes[0].graceNotes = graceBefore
+
+          } else if (kind === "singleNote" || kind === "groupNote") {
+            // if it's any kind of note, just add the grace notes normally
+            newNote.graceNotes = graceBefore
+
+          } else {
+            throw new Error("Internal error in evalMeasureHelper. Grace notes can only precede a tupletNote, singleNote, or groupNote")
+          }
+
+          // empty the list for the next note
+          graceBefore = []
+
+        }
+
+      }
+      // if there aren't any grace notes, just don't worry about them :)
+
+      // FIGURE OUT GRACE NOTES FOR A TUPLET TODO
+
+
 
       elements.push(newNote)
 
-    }
+      // add the width of the returned note, ONLY if it's not a grace note, so there's no double counting
+      totalWidth += newNote.width
 
-    // add the width of the returned note
-    totalWidth += newNote.width
+    }
 
   }
 

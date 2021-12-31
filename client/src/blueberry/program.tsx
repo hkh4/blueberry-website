@@ -8,6 +8,7 @@ export default function main(programType: string, input: string) {
     if (programType === "score") {
 
       const result = grammar.tryParse(input)
+
       const [options, measures] = result
 
       const svg = interpret(options, measures)

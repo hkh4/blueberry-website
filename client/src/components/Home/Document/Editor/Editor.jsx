@@ -76,9 +76,9 @@ function Editor({ setInput }) {
   }, [])
 
   return (
-    <div>
+    <div className="editor">
       <div id="container" ref={wrapperRef}></div>
-      <button onClick={compile}>Compile</button>
+      <button className="compile" onClick={compile}>Compile</button>
 
     </div>
   )
