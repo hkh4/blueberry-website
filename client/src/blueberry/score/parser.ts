@@ -1,4 +1,4 @@
-import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure } from "./types"
+import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure, Pitch, isPitch } from "./types"
 const P = require("parsimmon")
 
 const word = P.takeWhile(input => {
@@ -80,10 +80,10 @@ const d = P.string("d")
 const e = P.string("e")
 const f = P.string("f")
 const g = P.string("g")
-const noPitch = P.string("x")
+const noPitch = P.string("x").map(x => "nopitch")
 
 const pitch = P.alt(csharp, cflat, cnat, dsharp, dflat, dnat, esharp, eflat, enat, fsharp, fflat, fnat, gsharp, gflat, gnat, asharp, aflat, anat, bsharp, bflat, bnat, a, b, c, d, e, f, g, noPitch)
-  .desc("one of the following valid pitches: a, a#, ab, an, b, b#, bb, bn, c, c#, cb, cn, d, d#, db, dn, e, e#, eb, en, f, f#, fb, fn, g, g#, gb, gn")
+  .desc("one of the following valid pitches: a, a#, ab, an, b, b#, bb, bn, c, c#, cb, cn, d, d#, db, dn, e, e#, eb, en, f, f#, fb, fn, g, g#, gb, gn, x")
 
 // Properties
 const sls = P.string("sls")
@@ -254,11 +254,16 @@ const tupletBody = tupletNotes
   .trim(emptySpaces)
   .wrap(P.string("<"), P.string(">"))
 
-const tuplet = P.seqMap(tupletBody, rhythm, (t, r) => {
+// A tuplet can be a grace note, but that's the ONLY property allowed after the rhythm
+const graceOnly = P.string("/gra")
+  .fallback("")
+
+const tuplet = P.seqMap(tupletBody, rhythm, graceOnly, (t, r, g) => {
   const x: Tuplet = {
     kind: "tuplet",
     notes: t,
-    rhythm: r
+    rhythm: r,
+    grace: g ? true : false
   }
   return x
 })

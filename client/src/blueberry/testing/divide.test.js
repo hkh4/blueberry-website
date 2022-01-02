@@ -1,7 +1,9 @@
-const { parseSimple, parseComplex } = require("./../score/divide")
+const { parseSimple, parseComplex, parseGroup, parseTuplet } = require("./../score/divide")
 
 // ************************* Note parsers
 
+
+// **** parseSimple
 const parseSimpleNote = [
   1,
   {
@@ -11,8 +13,6 @@ const parseSimpleNote = [
     "pitch": "e",
     "properties": ["gra", "har"]
   },
-  4,
-  4,
   false,
   {
     "time": [4,4],
@@ -30,7 +30,7 @@ const parseSimpleNoteResult = [{
     "noteInfo": {
         "kind": "singleNote",
         "note": {
-            "singleNoteKind": "normalGuitarNote",
+            "noteKind": "normalGuitarNote",
             "string": 1,
             "pitch": "e",
             "fret": 11,
@@ -59,8 +59,6 @@ const parseSimpleRest = [
     "kind": "simple",
     "simpleKind": "restSimple"
   },
-  8,
-  3,
   true,
   {
     "time": [3,8],
@@ -93,6 +91,7 @@ test('parseSimpleRest', () => {
 
 
 
+//****** parseComplex
 const parseComplexNote = [
   3,
   {
@@ -103,8 +102,6 @@ const parseComplexNote = [
     "pitch": "f",
     "properties": ["pld","sls","slu"]
   },
-  4,
-  3,
   false,
   {
     "time": [3,4],
@@ -123,7 +120,7 @@ const parseComplexNoteResult = [
         "noteInfo": {
             "kind": "singleNote",
             "note": {
-                "singleNoteKind": "normalGuitarNote",
+                "noteKind": "normalGuitarNote",
                 "string": 2,
                 "pitch": "f#",
                 "fret": 9,
@@ -149,7 +146,7 @@ test('parseComplexNote', () => {
 
 
 
-
+// r8..
 const parseComplexRest = [
   3,
   {
@@ -157,8 +154,6 @@ const parseComplexRest = [
     "complexKind": "restComplex",
     "rhythm": [8,2]
   },
-  16,
-  10,
   false,
   {
     "time": [10,16],
@@ -195,9 +190,167 @@ test('parseComplexRest', () => {
 
 
 
+//***** parseGroup
+// (1e/^ 2f/sli 3g#/tie/har)2/pld
+const parseGroupNote = [
+  6666666666,
+  {
+    "kind": "group",
+    "groupKind": "groupComplex",
+    "rhythm": [2,0],
+    "notes": [
+        {
+            "string": 1,
+            "pitch": "e",
+            "eitherProperties": ["^"]
+        },
+        {
+            "string": 2,
+            "pitch": "f",
+            "eitherProperties": ["sli"]
+        },
+        {
+            "string": 3,
+            "pitch": "g#",
+            "eitherProperties": ["tie","har"]
+        }
+    ],
+    "multiProperties": ["pld"]
+  },
+  false,
+  {
+    "time": [4,4],
+    "key": "c",
+    "capo": 0,
+    "title": "Hi",
+    "composer": "Me",
+    "tuning": "standard",
+    "tuningNumbers": [0,7,2,9,5,0]
+  },
+  [4,0]
+]
+
+const parseGroupNoteResult = [{
+    "noteInfo": {
+        "kind": "groupNote",
+        "notes": [
+            {
+                "noteKind": "normalGuitarNote",
+                "string": 1,
+                "pitch": "e",
+                "fret": 12,
+                "eitherProperties": [
+                    "^"
+                ]
+            },
+            {
+                "noteKind": "normalGuitarNote",
+                "string": 2,
+                "pitch": "f",
+                "fret": 8,
+                "eitherProperties": [
+                    "sli"
+                ]
+            },
+            {
+                "noteKind": "normalGuitarNote",
+                "string": 3,
+                "pitch": "g#",
+                "fret": 6,
+                "eitherProperties": [
+                    "tie",
+                    "har"
+                ]
+            }
+        ],
+        "multiProperties": [
+            "pld"
+        ]
+    },
+    "duration": [
+        2,
+        0
+    ],
+    "start": 0,
+    "width": 0,
+    "lastNote": false,
+    "location": [
+        0,
+        0
+    ],
+    "graceNotes": [],
+    "comments": ""
+}, false, [2,0]]
+
+test('parseGroupNote', () => {
+  expect(parseGroup(...parseGroupNote)).toEqual(parseGroupNoteResult)
+})
 
 
 
+// ****** parseTuplet
+
+// <r>1
+const singleRestTuplet = [
+  1,
+  {
+    "kind": "tuplet",
+    "notes": [
+        {
+            "kind": "simple",
+            "simpleKind": "restSimple"
+        }
+    ],
+    "rhythm": [1,0],
+    "grace": false
+  },
+  true,
+  {
+    "time": [4,4],
+    "key": "c",
+    "capo": 0,
+    "title": "Untitled",
+    "composer": "Unknown",
+    "tuning": "standard",
+    "tuningNumbers": [0,7,2,9,5,0]
+  },
+  [4,0]
+]
+
+const singleRestTupletResult = [
+    {
+        "noteInfo": {
+            "kind": "tupletNote",
+            "notes": [
+                {
+                    "noteInfo": {
+                        "kind": "rest"
+                    },
+                    "duration": [4,0],
+                    "start": 0,
+                    "width": 15.384615384615383,
+                    "lastNote": false,
+                    "location": [0,0],
+                    "graceNotes": [],
+                    "comments": ""
+                }
+            ]
+        },
+        "duration": [1,0],
+        "start": 0,
+        "width": 15.384615384615383,
+        "lastNote": true,
+        "location": [0,0],
+        "graceNotes": [],
+        "comments": ""
+    },
+    false,
+    [1,0]
+]
+
+test('parseSingleRestTuplet', () => {
+  expect(parseTuplet(...singleRestTuplet)).toEqual(singleRestTupletResult)
+})
 
 
 

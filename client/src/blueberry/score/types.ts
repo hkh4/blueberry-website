@@ -118,8 +118,9 @@ export type GNote = {
 
 export type Tuplet = {
   kind: "tuplet"
-  notes: Note[],
-  rhythm: Rhythm
+  notes: ParserNote[],
+  rhythm: Rhythm,
+  grace: boolean
 }
 
 export type Comment = {
@@ -160,7 +161,7 @@ export type OptionsRecord = {
 }
 
 export type NormalGuitarNote = {
-  singleNoteKind: "normalGuitarNote",
+  noteKind: "normalGuitarNote",
   string: GuitarString,
   pitch: Pitch,
   fret: number,
@@ -168,7 +169,7 @@ export type NormalGuitarNote = {
 }
 
 export type X = {
-  singleNoteKind: "x",
+  noteKind: "x",
   string: GuitarString,
   eitherProperties: EitherProperty[]
 }

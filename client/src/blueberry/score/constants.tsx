@@ -9,6 +9,8 @@ export const timeChangeWidth = 10.0
 
 export const minimumLastWidth = 13.0
 
+export const tupletWidthReduction = 1.3
+
 
 
 // ************* Measure elements

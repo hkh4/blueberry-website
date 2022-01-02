@@ -1,6 +1,6 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote } from "./types"
 import { evalInnerOption } from "./options"
-import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth } from "./constants"
+import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction } from "./constants"
 
 
 
@@ -166,7 +166,7 @@ function createSingleNote(note: SingleSimple | SingleComplex, optionsR: OptionsR
 
     // x note
     notePortion = {
-      singleNoteKind: "x",
+      noteKind: "x",
       string: note.string,
       eitherProperties: eProps
     }
@@ -180,7 +180,7 @@ function createSingleNote(note: SingleSimple | SingleComplex, optionsR: OptionsR
     const fret = calculateFret(note.string, newPitch, optionsR.capo, optionsR.tuningNumbers, eProps)
 
     notePortion = {
-      singleNoteKind: "normalGuitarNote",
+      noteKind: "normalGuitarNote",
       string: note.string,
       pitch: newPitch,
       fret: fret,
@@ -224,14 +224,12 @@ function createSingleNote(note: SingleSimple | SingleComplex, optionsR: OptionsR
 /* Parse a simple note or rest
 1. measureNumber
 2. note: the simple note being parsed
-3. baseBeat: bottom number of time signature
-4. numberOfBeats: top number of time signature
-5. last: is it the last note in the measure?
-6. optionsR: OptionsRecord with options information
-7. defaultRhythm: rhythm to be used if none is given on a note
+3. last: is it the last note in the measure?
+4. optionsR: OptionsRecord with options information
+5. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new element, and whether or not it's a grace note
 */
-export function parseSimple(measureNumber: number, note: Simple, baseBeat: RhythmNumber, numberOfBeats: number, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean] {
+export function parseSimple(measureNumber: number, note: Simple, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean] {
 
   let isGrace : boolean;
 
@@ -278,13 +276,11 @@ export function parseSimple(measureNumber: number, note: Simple, baseBeat: Rhyth
 /* Parse a complex note
 1. measureNumber
 2. note: the complex note being parsed
-3. baseBeat: bottom number of time signature
-4. numberOfBeats: top number of time signature
-5. last: is it the last note in the measure?
-6. optionsR: OptionsRecord with options information
+3. last: is it the last note in the measure?
+4. optionsR: OptionsRecord with options information
 RETURNS the new element, whether or not it's a grace note, and the new default rhythm
 */
-export function parseComplex(measureNumber: number, note: Complex, baseBeat: RhythmNumber, numberOfBeats: number, last: boolean, optionsR: OptionsRecord) : [Element, boolean, [RhythmNumber, number]] {
+export function parseComplex(measureNumber: number, note: Complex, last: boolean, optionsR: OptionsRecord) : [Element, boolean, [RhythmNumber, number]] {
 
   let isGrace : boolean;
 
@@ -338,7 +334,292 @@ export function parseComplex(measureNumber: number, note: Complex, baseBeat: Rhy
 
 
 
+
+/* Parse a group note
+1. measureNumber
+2. note: the group note being parsed
+3. last: is it the last note in the measure?
+4. optionsR: OptionsRecord with options information
+5. defaultRhythm: rhythm to be used if none is given on a note
+RETURNS the new element, whether or not it's a grace note, and the new default rhythm
+*/
+export function parseGroup(measureNumber: number, note: Group, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean, [RhythmNumber, number]] {
+
+  // Destructure
+  const { groupKind, notes, multiProperties } = note
+
+  // Check to see if this note is a grace note
+  const isGrace : boolean = multiProperties.includes("gra")
+
+  // If it's a grace note AND the last note, throw an error, since the last note of a measure cannot be a grace note
+  if (isGrace && last) {
+    throw new Error(`Error in measure ${measureNumber}! The last note of a measure can't be a grace note.`)
+  }
+
+  // Keep track of which strings have a note. There can't be two notes on the same string
+  let stringsUsed : GuitarString[] = []
+
+  // Create the Note list
+  let noteList : Note[] = notes.map((n : GNote) => {
+
+    // Make sure this isn't a duplicate string
+    if (stringsUsed.includes(n.string)) {
+      throw new Error(`Error in measure ${measureNumber}! A group note can't have multiple notes on the same string.`)
+    }
+
+    stringsUsed.push(n.string)
+
+    let notePortion : Note;
+
+    if (n.pitch === "nopitch") {
+
+      // x note
+      notePortion = {
+        noteKind: "x",
+        string: n.string,
+        eitherProperties: n.eitherProperties
+      }
+    } else {
+
+      const newPitch = parseKey(n.pitch, optionsR.key)
+
+      // normalguitarnote
+      // Get the fret
+      const fret = calculateFret(n.string, newPitch, optionsR.capo, optionsR.tuningNumbers, n.eitherProperties)
+
+      notePortion = {
+        noteKind: "normalGuitarNote",
+        string: n.string,
+        pitch: newPitch,
+        fret: fret,
+        eitherProperties: n.eitherProperties
+      }
+
+    }
+
+    return notePortion
+
+  })
+
+  // Create the GroupNote
+  let groupNote : GroupNote = {
+    kind: "groupNote",
+    notes: noteList,
+    multiProperties: multiProperties
+  }
+
+  // Update the defaultRhythm if needed
+  let newDefaultRhythm : [RhythmNumber, number];
+
+  if (groupKind === "groupComplex") {
+    // type checking
+    if (!isRhythmNumberNumber(note.rhythm)) {
+      throw new Error("Internal error in parseGroup. A complex note cannot have a rhythm of norhythm")
+    }
+    newDefaultRhythm = note.rhythm
+  } else {
+    newDefaultRhythm = defaultRhythm
+  }
+
+
+  // Create the element
+  let element : Element = {
+    noteInfo: groupNote,
+    duration: newDefaultRhythm,
+    start: 0.0,
+    width: 0.0,
+    lastNote: last,
+    location: [0.0, 0.0],
+    graceNotes: [],
+    comments: ""
+  }
+
+  return [element, isGrace, newDefaultRhythm]
+
+}
+
+
+
+
+/* Parse a tuplet
+1. measureNumber
+2. note: the tuplet note being parsed
+3. last: is it the last note in the measure?
+4. optionsR: OptionsRecord with options information
+5. defaultRhythm: rhythm to be used if none is given
+RETURNS the new element, whether or not it's a grace note, and the new default rhythm
+// */
+export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean, [RhythmNumber, number]] {
+
+  console.log(note)
+  console.log(optionsR)
+
+  // Destructure the elements
+  const { notes: tupletNotes, rhythm: tupletRhythm, grace: isGraceTuplet } = note
+
+  let innerElements : Element[] = []
+
+  // If the entire tuplet isn't a grace note, there could be grace notes within
+  let innerGraceNotes : Element[] = []
+
+  // Keep track of the total width of all notes
+  let totalWidth = 0.0
+
+  // Parse each individual note within the tuplet
+  tupletNotes.forEach((n, index) => {
+
+    let element : Element
+    let isGrace : boolean
+
+    switch (n.kind) {
+
+      case "simple":
+
+        [element, isGrace] = parseSimple(measureNumber, n, false, optionsR, defaultRhythm)
+
+        break;
+
+      case "complex":
+
+        [element, isGrace, defaultRhythm] = parseComplex(measureNumber, n, false, optionsR)
+
+        break;
+
+      case "group":
+
+        [element, isGrace, defaultRhythm] = parseGroup(measureNumber, n, false, optionsR, defaultRhythm)
+
+        break;
+
+      case "tuplet":
+        throw new Error(`Error in measure ${measureNumber}! Can't have a tuplet within a tuplet.`)
+      default:
+        throw new Error("Internal error in parseTuplet. Switch reached a comment or hiddencomment, shouldn't happen.")
+    }
+
+    // If the entire tuplet is a grace note, and this inner note is a grace note, throw an error
+    if (isGraceTuplet && isGrace) {
+      throw new Error(`Error in measure ${measureNumber}! Can't have a grace note within a tuplet grace note.`)
+    }
+
+    // If this is the first note, it can't be a grace note
+    if (isGrace && (index === 0)) {
+      throw new Error(`Error in measure ${measureNumber}! The first note of a tuplet can't be a grace note. If you want a grace note attached to the first not of a tuplet, create it before the tuplet itself.`)
+    }
+
+
+    const rhythm = element.duration
+    // Duration cannot be norhythm
+    if (rhythm === "norhythm") {
+      throw new Error("Internal error in parseTuplet. None of these notes should have a duration of 'norhythm'")
+    }
+
+    const [rhythmNumber, dots] = rhythm
+
+    // Can't have any 0 rhythm notes within a tuplet. Doesn't make any sense.
+    if (rhythmNumber === 0) {
+      throw new Error(`Error in measure ${measureNumber}! No notes within a tuplet can have a rhythm of 0.`)
+    }
+
+    // Check dots
+    checkDots(rhythmNumber, dots, measureNumber)
+
+    // Get the width
+    let width : number;
+
+    const stringVersion = rhythm.toString()
+
+    if (isGrace || isGraceTuplet) {
+      width = graceWidths[stringVersion]
+    } else {
+      width = widths[stringVersion]
+
+      // since we're in a tuplet, make the width a little smaller
+      width /= tupletWidthReduction
+    }
+
+
+    // If this note isn't a grace note, and there are grace notes in innerGraceNotes, they need to be added, along with their widths
+    if (!isGrace && (innerGraceNotes.length > 0)) {
+
+      // Add up the widths of all the grace notes
+      const graceWidths = innerGraceNotes.reduce((prev, current) => {
+        return prev + current.width
+      }, 0.0)
+
+      width += graceWidths
+
+      // add the grace notes to the element, along with the buffer
+      innerGraceNotes.push(bufferElement)
+
+      element.graceNotes = innerGraceNotes
+      innerGraceNotes = []
+
+    }
+
+    // If this is the last note, make sure the last note of the tuplet is at least the minimum width
+    if (last && (index === tupletNotes.length - 1) && (width < minimumLastWidth)) {
+      width = minimumLastWidth
+    }
+
+    // Add the width to total ONLY if it isn't a grace note. This avoids double counting
+    if (!isGrace) {
+      totalWidth += width
+    }
+
+    // Add the width
+    element.width = width
+
+    // If it is a grace note, add it to the grace list. Otherwise, add it to the element list
+    if (isGrace) {
+      innerGraceNotes.push(element)
+    } else {
+      innerElements.push(element)
+    }
+
+  })
+
+  // Make sure that innerGraceNotes is empty.
+  if (innerGraceNotes.length > 0) {
+    throw new Error(`Error in measure ${measureNumber}! The last note of a tuplet can't be a grace note.`)
+  }
+
+  // Create the TupletNote and Element
+  const tupletNote : TupletNote = {
+    kind: "tupletNote",
+    notes: innerElements
+  }
+
+  const tupletElement : Element = {
+    noteInfo: tupletNote,
+    duration: tupletRhythm,
+    start: 0.0,
+    width: totalWidth,
+    lastNote: last,
+    location: [0.0,0.0],
+    graceNotes: [],
+    comments: ""
+  }
+
+  // set the new default rhythm
+  if (!isRhythmNumberNumber(tupletRhythm)) {
+    throw new Error("Internal error in parseTuplet. A complex note cannot have a rhythm of norhythm")
+  }
+
+  const newDefaultRhythm : [RhythmNumber, number] = tupletRhythm
+
+  console.log([tupletElement, isGraceTuplet, newDefaultRhythm])
+
+  return [tupletElement, isGraceTuplet, newDefaultRhythm]
+
+}
+
+
+
+
+
 /* Calculate the width of a note, and how much rhythm space it takes
+NOTE: the width of a tuplet note is taken care of separately.
 1. element: the note
 2. nextStart: the starting beat for this note
 3. baseBeat: bottom number of time signature
@@ -354,35 +635,7 @@ function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber,
     throw new Error("Internal error in widthStart. None of these notes should have a duration of 'norhythm'")
   }
 
-  // Take care of the grace note case first
-  if (isGrace) {
-    const stringVersion = rhythm.toString()
-    const width = graceWidths[stringVersion]
-
-    // Just find the width and return, the start doesn't matter for grace notes
-    let newElement : Element = {
-      ...element,
-      width: width
-    }
-
-    return [newElement, nextStart]
-  }
-
   const [rhythmNumber, dots] = rhythm
-
-  // Take care of the 0 rhythm first
-  if (rhythmNumber === 0) {
-
-    const width = widths['0,0']
-
-    let newElement : Element = {
-      ...element,
-      width: width
-    }
-
-    return [newElement, numberOfBeats + 1]
-
-  }
 
   // Figure out how many beats this note's rhythm takes, based on the time signature
   const indexOfBeat = arrayOfRhythms.indexOf(baseBeat)
@@ -410,6 +663,43 @@ function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber,
 
   const newNextStart = totalRhythm + nextStart
 
+  // If it's a tuplet note, the width was already taken care of. Just set nextStart and return
+  if (element.noteInfo.kind === "tupletNote") {
+    let newElement : Element = {
+      ...element,
+      start: nextStart
+    }
+    return [newElement, newNextStart]
+  }
+
+  // Take care of the grace note case first
+  if (isGrace) {
+    const stringVersion = rhythm.toString()
+    const width = graceWidths[stringVersion]
+
+    // Just find the width and return, the start doesn't matter for grace notes
+    let newElement : Element = {
+      ...element,
+      width: width
+    }
+
+    return [newElement, nextStart]
+  }
+
+  // Take care of the 0 rhythm first
+  if (rhythmNumber === 0) {
+
+    const width = widths['0,0']
+
+    let newElement : Element = {
+      ...element,
+      width: width
+    }
+
+    return [newElement, numberOfBeats + 1]
+
+  }
+
   // Get the width
   const stringVersion = rhythm.toString()
   let width = widths[stringVersion]
@@ -428,6 +718,40 @@ function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber,
 
   return [newElement, newNextStart]
 
+}
+
+
+
+
+/* Helper to make sure a note has the proper number of dots
+1. rhythm: the RhythmNumber of the rhythm
+2. dots: number of dots
+3. measureNumber
+RETURNS nothing. Will throw an error if anything is wrong
+*/
+function checkDots(rhythm: RhythmNumber, dots: number, measureNumber: number) {
+  switch (rhythm) {
+    case 0:
+      if (dots > 0) throw new Error(`Error in measure ${measureNumber}! A rest with rhythm 0 cannot have dots.`)
+      break;
+    case 64:
+      if (dots > 0) throw new Error(`Error in measure ${measureNumber}! A 64th note can't have dots.`)
+      break;
+    case 32:
+      if (dots > 1) throw new Error(`Error in measure ${measureNumber}! A 32nd note can only have up to 1 dot.`)
+      break;
+    case 16:
+      if (dots > 2) throw new Error(`Error in measure ${measureNumber}! A 16th note can only have up to 2 dots.`)
+      break;
+    case 8:
+    case 4:
+    case 2:
+    case 1:
+      if (dots > 3) throw new Error(`Error in measure ${measureNumber}! A note can have a maximum of 3 dots.`)
+      break;
+    default:
+      throw new Error("Internal error in checkDots. Reached unreachable case in switch")
+  }
 }
 
 
@@ -454,52 +778,44 @@ function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumbe
 
     case "simple":
 
-      [element, isGrace] = parseSimple(measureNumber, note, baseBeat, numberOfBeats, last, optionsR, defaultRhythm)
+      [element, isGrace] = parseSimple(measureNumber, note, last, optionsR, defaultRhythm)
 
       break;
     case "complex":
 
-      [element, isGrace, defaultRhythm] = parseComplex(measureNumber, note, baseBeat, numberOfBeats, last, optionsR)
+      [element, isGrace, defaultRhythm] = parseComplex(measureNumber, note, last, optionsR)
 
       break;
-    // case "group":
-    //   break;
-    // case "tuplet":
-    //   break;
+    case "group":
+
+      [element, isGrace, defaultRhythm] = parseGroup(measureNumber, note, last, optionsR, defaultRhythm)
+
+      break;
+    case "tuplet":
+
+      [element, isGrace, defaultRhythm] = parseTuplet(measureNumber, note, last, optionsR, defaultRhythm)
+
+      break;
     default:
       throw new Error("Internal error in evalNote. Switch reached a comment or hiddencomment, shouldn't happen.")
 
   }
 
+  // Duration cannot be norhythm
   if (element.duration === "norhythm") {
     throw new Error("Internal error in evalNote. None of these notes should have a duration of 'norhythm'")
   }
 
-  // Make sure the rhythm is valid, and there are the right number of dots
+
   const [rhythm, dots] = element.duration
 
-  switch (rhythm) {
-    case 0:
-      if (dots > 0) throw new Error(`Error in measure ${measureNumber}! A rest with rhythm 0 cannot have dots.`)
-      break;
-    case 64:
-      if (dots > 0) throw new Error(`Error in measure ${measureNumber}! A 64th note can't have dots.`)
-      break;
-    case 32:
-      if (dots > 1) throw new Error(`Error in measure ${measureNumber}! A 32nd note can only have up to 1 dot.`)
-      break;
-    case 16:
-      if (dots > 2) throw new Error(`Error in measure ${measureNumber}! A 16th note can only have up to 2 dots.`)
-      break;
-    case 8:
-    case 4:
-    case 2:
-    case 1:
-      if (dots > 3) throw new Error(`Error in measure ${measureNumber}! A note can have a maximum of 3 dots.`)
-      break;
-    default:
-      throw new Error("Internal error in evalNote. Reached unreachable case in switch")
+  // First, make sure that only a rest has a rhythm of 0
+  if ((rhythm === 0) && (element.noteInfo.kind !== "rest")) {
+    throw new Error(`Error in measure ${measureNumber}! Only a rest can have a rhythm of 0`)
   }
+
+  // Call the helper to make sure rhythms are valid
+  checkDots(rhythm, dots, measureNumber)
 
   // Call widthStart to figure out the width of the element, and how much time this note takes up in the measure.
   let newElement : Element;

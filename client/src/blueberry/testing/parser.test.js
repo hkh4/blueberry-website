@@ -105,7 +105,7 @@ const comp =
 	r4
 	$hi$
 	(3dn 4fb 6x/par)
-	<1f#8/har 2dn4/par/sli/sls (4f#/sld 1x/har)16./gra/sle>32.
+	<1f#8/har 2dn4/par/sli/sls (4f#/sld 1x/har)16./gra/sle>32./gra
 
 -key g
 
@@ -171,7 +171,7 @@ const compResult = [
                         8,
                         2
                     ],
-                    "pitch": "x",
+                    "pitch": "nopitch",
                     "properties": [
                         "gra",
                         "slu"
@@ -212,7 +212,7 @@ const compResult = [
                         },
                         {
                             "string": 6,
-                            "pitch": "x",
+                            "pitch": "nopitch",
                             "eitherProperties": [
                                 "par"
                             ]
@@ -222,6 +222,7 @@ const compResult = [
                 },
                 {
                     "kind": "tuplet",
+                    "grace": true,
                     "notes": [
                         {
                             "kind": "complex",
@@ -268,7 +269,7 @@ const compResult = [
                                 },
                                 {
                                     "string": 1,
-                                    "pitch": "x",
+                                    "pitch": "nopitch",
                                     "eitherProperties": [
                                         "har"
                                     ]
@@ -377,6 +378,7 @@ const compResult = [
                             ]
                         }
                     ],
+                    "grace": false,
                     "rhythm": [
                         8,
                         0
