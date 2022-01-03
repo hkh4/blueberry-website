@@ -451,9 +451,6 @@ RETURNS the new element, whether or not it's a grace note, and the new default r
 // */
 export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element, boolean, [RhythmNumber, number]] {
 
-  console.log(note)
-  console.log(optionsR)
-
   // Destructure the elements
   const { notes: tupletNotes, rhythm: tupletRhythm, grace: isGraceTuplet } = note
 
@@ -469,7 +466,7 @@ export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, 
   tupletNotes.forEach((n, index) => {
 
     let element : Element
-    let isGrace : boolean
+    let isGrace : boolean = false
 
     switch (n.kind) {
 
@@ -608,8 +605,6 @@ export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, 
 
   const newDefaultRhythm : [RhythmNumber, number] = tupletRhythm
 
-  console.log([tupletElement, isGraceTuplet, newDefaultRhythm])
-
   return [tupletElement, isGraceTuplet, newDefaultRhythm]
 
 }
@@ -628,6 +623,7 @@ NOTE: the width of a tuplet note is taken care of separately.
 RETURNS the updated element, and the new start for the next note
 */
 function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber, numberOfBeats: number, isGrace: boolean) : [Element, number] {
+
 
   // First, get the rhythm out of the element and make sure it's no a "norhythm"
   const rhythm = element.duration
@@ -669,7 +665,14 @@ function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber,
       ...element,
       start: nextStart
     }
-    return [newElement, newNextStart]
+
+    // if it's a grace note, don't update nextStart. Otherwise, do update
+    if (isGrace) {
+      return [newElement, nextStart]
+    } else {
+      return [newElement, newNextStart]
+    }
+
   }
 
   // Take care of the grace note case first
@@ -821,7 +824,9 @@ function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumbe
   let newElement : Element;
   let newNextStart : number;
 
+
   [newElement, newNextStart] = widthStart(element, nextStart, baseBeat, numberOfBeats, isGrace)
+
 
   if (newElement.lastNote) {
 
@@ -948,6 +953,9 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 
             newNote.noteInfo.notes[0].graceNotes = graceBefore
 
+            // also add the width to the first note
+            newNote.noteInfo.notes[0].width += graceWidths
+
           } else if (kind === "singleNote" || kind === "groupNote") {
             // if it's any kind of note, just add the grace notes normally
             newNote.graceNotes = graceBefore
@@ -991,7 +999,7 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 4. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new Measure
 */
-function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, changes, defaultRhythm: [RhythmNumber, number]) : Measure {
+export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, changes, defaultRhythm: [RhythmNumber, number]) : Measure {
 
   const notes = m.notes
   const measureNumber = m.measureNumber
