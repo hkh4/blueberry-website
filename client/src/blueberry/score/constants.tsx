@@ -11,9 +11,49 @@ export const minimumLastWidth = 13.0
 
 export const tupletWidthReduction = 1.3
 
+const emptyMeasureRestWidth = 30
+
+
+// ******** Graphics consts
+export const paperSize = [612, 792]
+
+export const firstLineWidth = 495
+
+export const otherLinesWidth = 515
+
+export const firstPageLineStart = 147
+
+export const otherPagesLineStart = 97
+
+export const lastPossibleLineStart = 732
+
+export const heightBetweenLines = 75
+
+export const firstLineX = 70
+
+export const otherLinesX = 50
+
 
 
 // ************* Measure elements
+
+export const emptyMeasureWidth = emptyMeasureRestWidth + emptyElementWidth
+
+const empty : Empty = {
+  kind: "empty"
+}
+
+export const emptyElement : Element = {
+  noteInfo: empty,
+  duration: "norhythm",
+  start: 0.0,
+  width: emptyElementWidth,
+  lastNote: false,
+  location: [0.0, 0.0],
+  graceNotes: [],
+  comments: ""
+}
+
 export const defaultMeasure : Measure = {
   key: "c",
   time: [4,4],
@@ -21,6 +61,33 @@ export const defaultMeasure : Measure = {
   measureNumber: 0,
   elements: [],
   width: 0.0,
+  changes: {
+    time: false,
+    key: false,
+    capo: false
+  }
+}
+
+const fullRest : Element = {
+  noteInfo: {
+    kind: "rest"
+  },
+  duration: [0,0],
+  start: 0.0,
+  width: 30.0,
+  lastNote: true,
+  location: [0.0,0.0],
+  graceNotes: [],
+  comments: ""
+}
+
+export const emptyMeasure : Measure = {
+  key: "c",
+  time: [4,4],
+  capo: 0,
+  measureNumber: 0,
+  elements: [emptyElement, fullRest],
+  width: emptyMeasureWidth,
   changes: {
     time: false,
     key: false,
@@ -37,21 +104,6 @@ export const bufferElement : Element = {
   duration: "norhythm",
   start: 0.0,
   width: 0.0,
-  lastNote: false,
-  location: [0.0, 0.0],
-  graceNotes: [],
-  comments: ""
-}
-
-const empty : Empty = {
-  kind: "empty"
-}
-
-export const emptyElement : Element = {
-  noteInfo: empty,
-  duration: "norhythm",
-  start: 0.0,
-  width: emptyElementWidth,
   lastNote: false,
   location: [0.0, 0.0],
   graceNotes: [],

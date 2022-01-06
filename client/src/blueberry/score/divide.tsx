@@ -1,6 +1,6 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote } from "./types"
 import { evalInnerOption } from "./options"
-import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction } from "./constants"
+import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth } from "./constants"
 
 
 
@@ -1097,9 +1097,6 @@ export function evalMeasures(elements: Expr[], optionsR: OptionsRecord, defaultR
         // Call the helper
         const newMeasure = evalMeasure(p, optionsR, changes, defaultRhythm)
 
-        console.log("newMeasure")
-        console.log(newMeasure)
-
         measures.push(newMeasure)
         changes = {
           time: false,
@@ -1118,3 +1115,214 @@ export function evalMeasures(elements: Expr[], optionsR: OptionsRecord, defaultR
   return measures
 
 }
+
+
+
+
+/* Add extra empty measures to a line if needed
+1. line: the line to be considered
+RETURNS the updated line
+*/
+function addEmptyMeasures(line: Line) : Line {
+
+  const diff = line.originalWidth / line.finalWidth
+
+  if (diff < 0.25) {
+
+    // if less than 25% full, add 5 empty measures
+    line.measures.push(emptyMeasure,emptyMeasure,emptyMeasure,emptyMeasure,emptyMeasure)
+    line.originalWidth += (emptyMeasureWidth * 5)
+
+  } else if (diff < 0.5) {
+
+    // if 25-50% full, add 3 empty measures
+    line.measures.push(emptyMeasure,emptyMeasure,emptyMeasure)
+    line.originalWidth += (emptyMeasureWidth * 3)
+
+  } else if (diff < 0.75) {
+
+    // if 50%-75% full, add one empty measure
+    line.measures.push(emptyMeasure)
+    line.originalWidth += emptyMeasureWidth
+
+  }
+
+  return line
+
+}
+
+
+
+
+/* Divide the measures into lines
+1. measures: list of measures to be divided into lines
+RETURNS the lines
+*/
+export function divideLines(measures: Measure[]) : Line[] {
+
+  let lines : Line[] = []
+
+  // is this the first line, for width purposes
+  let firstLine = true;
+
+  // keep track of the width of all measures so far
+  let totalWidth = 0.0
+
+  // keep track of all the measures that are to be added to the current line
+  let measuresInCurrentLine : Measure[] = []
+
+  measures.forEach(m => {
+
+    // Add this measure's width
+    totalWidth += m.width
+
+    // See if it overflows the line. If so, end the line and start a new one
+    const widthToCompare = firstLine ? firstLineWidth : otherLinesWidth
+
+    if (totalWidth > widthToCompare) {
+
+      // Create the new line
+      const newLine : Line = {
+        lineNumber: lines.length + 1,
+        measures: measuresInCurrentLine,
+        originalWidth: totalWidth - m.width,
+        finalWidth: widthToCompare,
+        start: [0.0,0.0] // to be figured out with pages are divided
+      }
+
+      const lineWithEmptyMeasures = addEmptyMeasures(newLine)
+
+      lines.push(lineWithEmptyMeasures)
+
+      measuresInCurrentLine = [m]
+      totalWidth = m.width
+      firstLine = false
+
+    } else {
+
+      // Add this measure to the list
+      measuresInCurrentLine.push(m)
+
+    }
+
+  })
+
+  // If there's anything left in measuresInCurrentLine, we need one last line
+  if (measuresInCurrentLine.length > 0) {
+
+    // need to figure out width of this line
+    const w = measuresInCurrentLine.reduce((prev, current) => {
+      return prev + current.width
+    }, 0.0)
+
+    const widthToCompare = firstLine ? firstLineWidth : otherLinesWidth
+
+    const newLine : Line = {
+      lineNumber: lines.length + 1,
+      measures: measuresInCurrentLine,
+      originalWidth: w,
+      finalWidth: widthToCompare,
+      start: [0.0,0.0] // to be figured out with pages are divided
+    }
+
+    const lineWithEmptyMeasures = addEmptyMeasures(newLine)
+
+    lines.push(lineWithEmptyMeasures)
+  }
+
+  return lines
+
+}
+
+
+
+
+/* Divide lines into pages
+1. lines: the lines to be divided
+RETURNS list of pages
+*/
+export function dividePages(lines: Line[]) : Page[] {
+
+  let pages : Page[] = []
+
+  // What height are we currently at
+  let currentLocation = firstPageLineStart
+
+  let linesInCurrentPage : Line[] = []
+
+  lines.forEach((l, index) => {
+
+
+    // Check to see if the height has passed the edge
+    if (currentLocation > lastPossibleLineStart) {
+
+      const newPage : Page = {
+        pageNumber: pages.length + 1,
+        lines: linesInCurrentPage
+      }
+
+      pages.push(newPage)
+
+      // update the line
+      const newLine : Line = {
+        ...l,
+        start: [otherLinesX, otherPagesLineStart]
+      }
+
+      currentLocation = otherPagesLineStart + heightBetweenLines
+      linesInCurrentPage = [newLine]
+
+    } else {
+
+      // Update the line
+      const startX = (index === 0) ? firstLineX : otherLinesX
+
+      const newLine : Line = {
+        ...l,
+        start: [startX, currentLocation]
+      }
+
+      linesInCurrentPage.push(newLine)
+
+      // Move the location
+      currentLocation += heightBetweenLines
+
+    }
+
+  })
+
+  // If there is anything still in the list, that means there are extra lines left. Make one last page
+  if (linesInCurrentPage.length > 0) {
+
+    const newPage : Page = {
+      pageNumber: pages.length + 1,
+      lines: linesInCurrentPage
+    }
+    pages.push(newPage)
+  }
+
+  return pages
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//

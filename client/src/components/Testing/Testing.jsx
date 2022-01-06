@@ -9,7 +9,7 @@ function Testing() {
   return (
     <div className="box">
 
-      <svg viewBox="0 0 595 842">
+      <svg viewBox="0 0 612 792">
 
       </svg>
 

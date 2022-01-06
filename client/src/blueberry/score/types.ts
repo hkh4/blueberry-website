@@ -247,7 +247,6 @@ export type Line = {
   measures: Measure[],
   originalWidth: number,
   finalWidth: number,
-  type: string,
   start: [number, number]
 }
 
