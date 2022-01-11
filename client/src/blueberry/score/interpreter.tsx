@@ -1,6 +1,7 @@
 import { ScoreOption, OptionsRecord, Expr } from "./types"
 import { evalOptions } from "./options"
 import { evalMeasures, divideLines, dividePages } from "./divide"
+import { show } from "./graphics"
 
 /********************* Main Driver
 1. options: options at the beginning of the document
@@ -31,6 +32,12 @@ export default function interpret(options: ScoreOption[], elements: Expr[]) {
   // Split the lines into pages
   const pages = dividePages(lines)
 
-  return <svg></svg>
+  console.log(pages)
+
+  // Showtime!
+  const resultSVG = show(pages, optionsR.tuningNumbers)
+
+
+  return resultSVG
 
 }

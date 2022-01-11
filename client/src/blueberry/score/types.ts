@@ -254,3 +254,55 @@ export type Page = {
   pageNumber: number,
   lines: Line[]
 }
+
+export type PropertyList = {
+  // (x,y),fret,grace note,valid
+  slurStart: [[number, number], boolean, boolean],
+  // (x,y),valid
+  muteStart: [[number, number], boolean],
+  // string: (x,y),fret,grace,valid
+  tieStart: {
+    s1: [[number, number], number, boolean, boolean],
+    s2: [[number, number], number, boolean, boolean],
+    s3: [[number, number], number, boolean, boolean],
+    s4: [[number, number], number, boolean, boolean],
+    s5: [[number, number], number, boolean, boolean],
+    s6: [[number, number], number, boolean, boolean]
+  },
+  slideStart: {
+    s1: [[number, number], number, boolean, boolean],
+    s2: [[number, number], number, boolean, boolean],
+    s3: [[number, number], number, boolean, boolean],
+    s4: [[number, number], number, boolean, boolean],
+    s5: [[number, number], number, boolean, boolean],
+    s6: [[number, number], number, boolean, boolean]
+  },
+  slideStubs: {
+    s1: [[number, number], number, boolean, boolean],
+    s2: [[number, number], number, boolean, boolean],
+    s3: [[number, number], number, boolean, boolean],
+    s4: [[number, number], number, boolean, boolean],
+    s5: [[number, number], number, boolean, boolean],
+    s6: [[number, number], number, boolean, boolean]
+  },
+  hammerStart: {
+    s1: [[number, number], number, boolean, boolean],
+    s2: [[number, number], number, boolean, boolean],
+    s3: [[number, number], number, boolean, boolean],
+    s4: [[number, number], number, boolean, boolean],
+    s5: [[number, number], number, boolean, boolean],
+    s6: [[number, number], number, boolean, boolean]
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+//
