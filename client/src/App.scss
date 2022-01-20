@@ -24,7 +24,11 @@
   width: 100vw;
 
   svg {
-    font-size: 1rem;
     color: black;
+
+    .title {
+      font-size: 22px;
+      font-family: "Times New Roman", serif;
+    }
   }
 }
