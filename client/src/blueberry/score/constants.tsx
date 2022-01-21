@@ -15,7 +15,9 @@ const emptyMeasureRestWidth = 30
 
 
 // ******** Graphics consts
-export const paperSize = [612, 792]
+export const paperWidth = 612
+
+export const paperHeight = 792
 
 export const firstLineWidth = 495
 
