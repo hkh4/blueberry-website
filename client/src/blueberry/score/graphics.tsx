@@ -1,6 +1,7 @@
 import { Page, PropertyList, OptionsRecord, Line } from "./types"
 import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth } from "./constants"
 import { Fragment } from "react"
+import { style } from "./style"
 
 // Property list that will be used and updated throughout
 let propertyList : PropertyList = {
@@ -45,10 +46,9 @@ let propertyList : PropertyList = {
 
 /* Graphics for one line
 1. line: line being shown
-2: pageNumber;
 RETURNS jsx
 */
-function showLine(line: Line, pageNumber: number) {
+function showLine(line: Line) {
 
   // Starting position of the staff
   const [staffX, staffY] = line.start
@@ -77,10 +77,35 @@ function showLine(line: Line, pageNumber: number) {
   // Add the TAB clef, plus the time signature if it's the first line of the first page
   const clefAndTimeSignature = <>
 
+    <line style={{strokeWidth: "1px"}} x1={staffX + 3.1} y1={staffY - 26.3} x2={staffX + 8.6} y2={staffY - 26.3} />
+    <line style={{strokeWidth: "1.1px"}} x1={staffX + 5.85} y1={staffY - 25.8} x2={staffX + 5.85} y2={staffY - 19.8} />
+
+    <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 2.6} ${staffY - 11.4} l 1.2 0 l 0.7 -2 l 2.8 0 l 0.7 2 l 1.2 0 l -2.7 -7 l -1.2 0 l -2.7 7`} />
+    <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 4.8} ${staffY - 14.3} l 2.2 0 l -1.1 -3.1 l -1.1 3.1`} fill="white" />
+
+    <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 3.5} ${staffY - 2.5} l 3.3 0 c 2.4 0 1.9 -3.7 0.9 -3.7 c 1 0 1.5 -3.7 -0.9 -3.7 l -3.3 0 l 0 7.4`} />
+    <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 4.5} ${staffY - 3.4} l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
+    <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 4.5} ${staffY - 6.7} l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
+
+
+
   </>
+
+  /*
+  <line style={{strokeWidth: "1px"}} x1={200} y1={200} x2={205.5} y2={200} />
+  <line style={{strokeWidth: "1.1px"}} x1={202.75} y1={200.5} x2={202.75} y2={206.5} />
+
+  <path style={{strokeWidth: "0.1px"}} d={`M 199.5 214.9 l 1.2 0 l 0.7 -2 l 2.8 0 l 0.7 2 l 1.2 0 l -2.7 -7 l -1.2 0 l -2.7 7`} />
+  <path style={{strokeWidth: "0.1px"}} d={`M 201.7 212 l 2.2 0 l -1.1 -3.1 l -1.1 3.1`} fill="white" />
+
+  <path style={{strokeWidth: "0.1px"}} d={`M 200.4 223.3 l 3.3 0 c 2.4 0 1.9 -3.7 0.9 -3.7 c 1 0 1.5 -3.7 -0.9 -3.7 l -3.3 0 l 0 7.4`} />
+  <path style={{strokeWidth: "0.1px"}} d={`M 201.4 222.4 l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
+  <path style={{strokeWidth: "0.1px"}} d={`M 201.4 219.1 l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
+  */
 
   return <>
     {staffLines}
+    {clefAndTimeSignature}
   </>
 
 }
@@ -98,9 +123,12 @@ function showPage(page: Page, optionsR: OptionsRecord) {
   const lines : Line[] = page.lines
   const pageNumber: number = page.pageNumber
 
+
   if (pageNumber === 1) {
 
     return <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+
+      <style>{style}</style>
 
       <text x="306" y="47" textAnchor="middle" className="title">{optionsR.title}</text>
       <text x="565" y="72" textAnchor="end" className="composer">{optionsR.composer}</text>
@@ -109,7 +137,7 @@ function showPage(page: Page, optionsR: OptionsRecord) {
 
       {lines.map((line, index) => {
         return <Fragment key={index}>
-          {showLine(line, pageNumber)}
+          {showLine(line)}
         </Fragment>
       })}
 
@@ -117,9 +145,10 @@ function showPage(page: Page, optionsR: OptionsRecord) {
   } else {
 
     return <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+      <style>{style}</style>
       {lines.map((line, index) => {
         return <Fragment key={index}>
-          {showLine(line, pageNumber)}
+          {showLine(line)}
         </Fragment>
       })}
     </svg>
