@@ -32,4 +32,8 @@ path.fancy-line-curl {
   stroke-width: 0.1px;
 }
 
+.flip {
+  transform: scaleY(-1);
+}
+
 `

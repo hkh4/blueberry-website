@@ -2,6 +2,7 @@ import { Page, PropertyList, OptionsRecord, Line } from "./types"
 import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth } from "./constants"
 import { Fragment } from "react"
 import { style } from "./style"
+import { defs } from "./svgDefs"
 
 // Property list that will be used and updated throughout
 let propertyList : PropertyList = {
@@ -77,6 +78,8 @@ function showLine(line: Line) {
   // Add the TAB clef, plus the time signature if it's the first line of the first page
   const clefAndTimeSignature = <>
 
+    {/* "tab" clef */}
+
     <line style={{strokeWidth: "1px"}} x1={staffX + 3.1} y1={staffY - 26.3} x2={staffX + 8.6} y2={staffY - 26.3} />
     <line style={{strokeWidth: "1.1px"}} x1={staffX + 5.85} y1={staffY - 25.8} x2={staffX + 5.85} y2={staffY - 19.8} />
 
@@ -87,7 +90,24 @@ function showLine(line: Line) {
     <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 4.5} ${staffY - 3.4} l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
     <path style={{strokeWidth: "0.1px"}} d={`M ${staffX + 4.5} ${staffY - 6.7} l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
 
+    {/* if it's the first line, add the time signature */}
 
+    <use href="#time0" x="50" y="200" />
+    <use href="#time1" x="100" y="200" />
+    <use href="#time2" x="150" y="200" />
+    <use href="#time3" x="200" y="200" />
+    <use href="#time4" x="250" y="200" />
+    <use href="#time5" x="300" y="200" />
+    <use href="#time6" x="350" y="200" />
+    <use href="#time7" x="400" y="200" />
+    <use href="#time8" x="450" y="200" />
+    <use href="#time9" x="500" y="200" />
+
+
+    {
+      line.lineNumber &&
+      <text/>
+    }
 
   </>
 
@@ -127,7 +147,7 @@ function showPage(page: Page, optionsR: OptionsRecord) {
   if (pageNumber === 1) {
 
     return <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
-
+      {defs}
       <style>{style}</style>
 
       <text x="306" y="47" textAnchor="middle" className="title">{optionsR.title}</text>
@@ -145,6 +165,7 @@ function showPage(page: Page, optionsR: OptionsRecord) {
   } else {
 
     return <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+      {defs}
       <style>{style}</style>
       {lines.map((line, index) => {
         return <Fragment key={index}>
