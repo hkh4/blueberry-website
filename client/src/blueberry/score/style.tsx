@@ -33,7 +33,7 @@ path.fancy-line-curl {
 }
 
 .flip {
-  transform: scaleY(-1);
+  transform: scale(0.1,-0.1);
 }
 
 `

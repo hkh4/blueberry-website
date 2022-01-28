@@ -1,5 +1,5 @@
 import { Page, PropertyList, OptionsRecord, Line } from "./types"
-import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth } from "./constants"
+import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer } from "./constants"
 import { Fragment } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
@@ -92,36 +92,22 @@ function showLine(line: Line) {
 
     {/* if it's the first line, add the time signature */}
 
-    <use href="#time0" x="50" y="200" />
-    <use href="#time1" x="100" y="200" />
-    <use href="#time2" x="150" y="200" />
-    <use href="#time3" x="200" y="200" />
-    <use href="#time4" x="250" y="200" />
-    <use href="#time5" x="300" y="200" />
-    <use href="#time6" x="350" y="200" />
-    <use href="#time7" x="400" y="200" />
-    <use href="#time8" x="450" y="200" />
-    <use href="#time9" x="500" y="200" />
-
-
     {
-      line.lineNumber &&
-      <text/>
+      line.lineNumber === 1 &&
+      <>
+      <use href={`#time${line.measures[0].time[0]}`} x={staffX + 17} y={staffY - 23} />
+      <use href={`#time${line.measures[0].time[1]}`} x={staffX + 17} y={staffY - 14.5} />
+      </>
     }
 
   </>
 
-  /*
-  <line style={{strokeWidth: "1px"}} x1={200} y1={200} x2={205.5} y2={200} />
-  <line style={{strokeWidth: "1.1px"}} x1={202.75} y1={200.5} x2={202.75} y2={206.5} />
-
-  <path style={{strokeWidth: "0.1px"}} d={`M 199.5 214.9 l 1.2 0 l 0.7 -2 l 2.8 0 l 0.7 2 l 1.2 0 l -2.7 -7 l -1.2 0 l -2.7 7`} />
-  <path style={{strokeWidth: "0.1px"}} d={`M 201.7 212 l 2.2 0 l -1.1 -3.1 l -1.1 3.1`} fill="white" />
-
-  <path style={{strokeWidth: "0.1px"}} d={`M 200.4 223.3 l 3.3 0 c 2.4 0 1.9 -3.7 0.9 -3.7 c 1 0 1.5 -3.7 -0.9 -3.7 l -3.3 0 l 0 7.4`} />
-  <path style={{strokeWidth: "0.1px"}} d={`M 201.4 222.4 l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
-  <path style={{strokeWidth: "0.1px"}} d={`M 201.4 219.1 l 2.3 0 c 1 0 1 -2.3 0 -2.3 l -2.3 0 l 0 2.2`} fill="white" />
-  */
+  // Update the x location
+  if (line.lineNumber === 1) {
+    staffX += firstLineBuffer
+  } else {
+    staffX += otherLinesBuffer
+  }
 
   return <>
     {staffLines}
