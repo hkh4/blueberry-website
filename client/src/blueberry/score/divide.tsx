@@ -1,4 +1,4 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts } from "./types"
 import { evalInnerOption } from "./options"
 import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth } from "./constants"
 
@@ -61,11 +61,12 @@ function parseKey(pitch: Pitch, key: Key) : Pitch {
 3. capo: what the capo is currently set to
 4. tuningNumbers: describes how the guitar is tuned
 5. eProps: the EitherProperty list of this note. Used to check if there's an up fret or not
+6. measureNumber: for errors
 RETURNS the fret
 */
-function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tuningNumbers: number[], eProps: EitherProperty[]) : number {
+function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tuningNumbers: number[], eProps: EitherProperty[], measureNumber: number) : Ints {
 
-  let fretByPitch : number;
+  let fretByPitch : Ints;
 
   switch (pitch) {
 
@@ -137,6 +138,10 @@ function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tun
     fret += 12
   }
 
+  if (!isInts(fret)) {
+    throw new Error(`Error in measure ${measureNumber}! The maximum fret allowed in 30.`)
+  }
+
   return fret
 
 }
@@ -177,7 +182,7 @@ function createSingleNote(note: SingleSimple | SingleComplex, optionsR: OptionsR
 
     // normalguitarnote
     // Get the fret
-    const fret = calculateFret(note.string, newPitch, optionsR.capo, optionsR.tuningNumbers, eProps)
+    const fret = calculateFret(note.string, newPitch, optionsR.capo, optionsR.tuningNumbers, eProps, measureNumber)
 
     notePortion = {
       noteKind: "normalGuitarNote",
@@ -385,7 +390,7 @@ export function parseGroup(measureNumber: number, note: Group, last: boolean, op
 
       // normalguitarnote
       // Get the fret
-      const fret = calculateFret(n.string, newPitch, optionsR.capo, optionsR.tuningNumbers, n.eitherProperties)
+      const fret = calculateFret(n.string, newPitch, optionsR.capo, optionsR.tuningNumbers, n.eitherProperties, measureNumber)
 
       notePortion = {
         noteKind: "normalGuitarNote",

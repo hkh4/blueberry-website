@@ -63,7 +63,7 @@ export function evalOptions(options: ScoreOption[], optionsR: OptionsRecord) : [
 
         const capo = parseInt(value)
         if (!isInts(capo)) {
-          throw new Error("Invalid capo! Must be a number from 0-20.")
+          throw new Error("Invalid capo! Must be a number from 0-30.")
         }
 
         optionsR.capo = capo

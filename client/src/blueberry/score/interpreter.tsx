@@ -35,7 +35,7 @@ export default function interpret(options: ScoreOption[], elements: Expr[]) {
   console.log(pages)
 
   // Showtime!
-  const resultSVG = show(pages, optionsR)
+  const [newPages, resultSVG] = show(pages, optionsR)
 
 
   return resultSVG

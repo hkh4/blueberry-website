@@ -87,20 +87,6 @@ const fullRest : Element = {
   comments: ""
 }
 
-export const emptyMeasure : Measure = {
-  key: "c",
-  time: [4,4],
-  capo: 0,
-  measureNumber: 0,
-  elements: [emptyElement, fullRest],
-  width: emptyMeasureWidth,
-  changes: {
-    time: false,
-    key: false,
-    capo: false
-  }
-}
-
 const buffer : Buffer = {
   kind: "buffer"
 }
@@ -129,6 +115,20 @@ export const barlineElement : Element = {
   location: [0.0, 0.0],
   graceNotes: [],
   comments: ""
+}
+
+export const emptyMeasure : Measure = {
+  key: "c",
+  time: [4,4],
+  capo: 0,
+  measureNumber: 0,
+  elements: [emptyElement, fullRest, barlineElement],
+  width: emptyMeasureWidth,
+  changes: {
+    time: false,
+    key: false,
+    capo: false
+  }
 }
 
 

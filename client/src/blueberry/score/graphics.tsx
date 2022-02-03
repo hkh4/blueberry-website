@@ -1,6 +1,6 @@
-import { Page, PropertyList, OptionsRecord, Line } from "./types"
-import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer } from "./constants"
-import { Fragment } from "react"
+import { Page, PropertyList, OptionsRecord, Line, Measure, Element, SingleNote, GroupNote, TupletNote, Note, NormalGuitarNote, X, Rest, GuitarString, Ints } from "./types"
+import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer, emptyElementWidth } from "./constants"
+import { Fragment, ReactElement } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
 
@@ -45,11 +45,208 @@ let propertyList : PropertyList = {
 
 
 
+/* Show the fret number
+1. x location
+2. y location
+3. guitarString: what string of the guitar is this note on
+4. fret
+RETURNS code
+*/
+function showNormalGuitarNote(x: number, y: number, guitarString: GuitarString, fret: number) : ReactElement {
+
+  const newY = (y + 2) - (6 * (guitarString - 1))
+
+  return <use href={`#fret${fret}`} x={x} y={newY} />
+
+}
+
+
+
+
+/* Show a singleNote
+1. singleNote
+RETURNS code to show this note
+*/
+function showSingleNote(singleNote: SingleNote, x: number, y: number) : ReactElement {
+
+  const note : Note = singleNote.note
+  let noteCode : ReactElement = <></>
+
+  // First, show any grace notes if they exist
+
+  // Then, show the note itself
+  if (note.noteKind === "normalGuitarNote") {
+    // normalguitarnote
+    noteCode = showNormalGuitarNote(x, y, note.string, note.fret)
+
+  } else {
+    // x note
+
+  }
+
+  const result = <>
+    {noteCode}
+  </>
+
+  return result
+
+}
+
+
+
+
+/* Show an element
+1. element to be shown
+2. width: total width of the measure, used to centering the whole rest of an empty measure
+3. scale: ratio used to scale how much space the element takes up
+4. x location
+5. y location
+RETURNS the updated element, the code, and the new x location for the next element
+*/
+function showElement(element: Element, width: number, scale: number, x: number, y: number) : [Element, ReactElement, number] {
+
+  let newElement : Element = {
+    ...element,
+    location: [x,y]
+  }
+  let newX : number = x;
+  let code : ReactElement = <></>
+
+  // First write out the comments
+  const comment = <text className="comment" x={x + 2} y={y - 50} textAnchor="middle" >{element.comments}</text>
+
+  const notehead = element.noteInfo
+
+  // TODO
+  switch (notehead.kind) {
+
+    case "timeChange":
+
+      code = <>
+      <use href={`#time${notehead.newTime[0]}`} x={x + 7} y={y - 23} />
+      <use href={`#time${notehead.newTime[1]}`} x={x + 7} y={y - 14.5} />
+      </>
+
+      newX += (scale * element.width)
+      break;
+
+    case "buffer":
+      // do nothing
+      break;
+    case "empty":
+      newX += 5
+      break;
+
+    case "singleNote":
+
+      code = showSingleNote(notehead, x, y)
+      newX += (scale * element.width)
+      break;
+
+    case "groupNote":
+
+      newX += (scale * element.width)
+      break;
+
+    case "tupletNote":
+
+      newX += (scale * element.width)
+      break;
+
+    case "rest":
+
+      newX += (scale * element.width)
+      break;
+
+    case "barline":
+
+      code = <>
+        <path className="measure-barline" d={`M ${x - 5} ${y + 0.2} l 0 -30.4`} />
+      </>
+      newX += (scale * element.width)
+
+      break;
+
+    default:
+      throw new Error("Internal error in showElement. Invalid noteInfo type")
+
+  }
+
+  const result = <>
+    {comment}
+    {code}
+  </>
+
+  return [newElement, result, newX]
+
+}
+
+
+
+
+/* Show measures
+1. measure: the measure being shown
+2. x location
+3. y location
+4. scale: ratio that the width of all elements should be changed by
+RETURNS the updated measure, the code, and the width of the measure
+*/
+function showMeasure(measure: Measure, x: number, y: number, scale: number) : [Measure, ReactElement, number] {
+
+  const elements : Element[] = measure.elements
+
+  // width based on what the original width of the measure is, times the scale
+  const newWidth = measure.width * scale
+
+  // since the empty space at the beginning needs to be constant size, recalculate the scale based on that
+  const insideScale = newWidth / (measure.width - emptyElementWidth)
+
+  let newElement : Element
+  let code : ReactElement
+  let newX : number = x
+
+  let updatedElements : Element[] = []
+
+  const result = <>
+
+    {
+      measure.changes.capo &&
+      <text x={x} y={y - 55} className="capo-change">{`capo ${measure.capo}`}</text>
+    }
+
+    {elements.map((el, index) => {
+
+      [newElement, code, newX] = showElement(el, newWidth, insideScale, newX, y)
+      updatedElements.push(newElement)
+
+      return <Fragment key={index}>
+        {code}
+      </Fragment>
+
+    })}
+  </>
+
+  // TODO
+  // Beams
+
+
+  const newMeasure : Measure = {
+    ...measure,
+    elements: updatedElements
+  }
+
+  return [newMeasure, result, newWidth]
+
+}
+
+
+
+
 /* Graphics for one line
 1. line: line being shown
-RETURNS jsx
+RETURNS the updated line, and the code
 */
-function showLine(line: Line) {
+function showLine(line: Line) : [Line, ReactElement] {
 
   // Starting position of the staff
   const [staffX, staffY] = line.start
@@ -102,17 +299,61 @@ function showLine(line: Line) {
 
   </>
 
+  // display the number of the first measure of this line
+  const firstMeasureNumber = line.measures[0].measureNumber
+
+  const measureNumberCode = <>
+    <text x={staffX - 5} y={staffY - 40} textAnchor="start" className="measure-number">{firstMeasureNumber}</text>
+  </>
+
+  let newX;
+
   // Update the x location
   if (line.lineNumber === 1) {
-    staffX += firstLineBuffer
+    newX = staffX + firstLineBuffer
   } else {
-    staffX += otherLinesBuffer
+    newX = staffX + otherLinesBuffer
   }
 
-  return <>
+  // Figure out the scale
+  const scale = (line.finalWidth + staffX - newX) / line.originalWidth
+
+  // updated measures
+  let updatedMeasures : Measure[] = []
+
+  let code : ReactElement
+  let newMeasure : Measure
+  let widthOfMeasure : number
+
+  const result =  <>
     {staffLines}
     {clefAndTimeSignature}
+    {measureNumberCode}
+
+    {
+      line.measures.map((m, index) => {
+
+        [newMeasure, code, widthOfMeasure] = showMeasure(m, newX, staffY, scale)
+        updatedMeasures.push(newMeasure)
+        newX += widthOfMeasure
+
+        return <Fragment key={index}>
+          {code}
+        </Fragment>
+      })
+    }
+
   </>
+
+  // TODO
+  // END OF LINE PROPERTY CHECKS
+
+  const newLine = {
+    ...line,
+    measures: updatedMeasures
+  }
+
+  return [newLine, result]
 
 }
 
@@ -122,17 +363,20 @@ function showLine(line: Line) {
 /* Graphics for one page
 1. page: the page being shown
 2. optionsR: optionsRecord to display, if needed
-RETURNS svg for this page
+RETURNS the updated page, and the svg code
 */
-function showPage(page: Page, optionsR: OptionsRecord) {
+function showPage(page: Page, optionsR: OptionsRecord) : [Page, ReactElement] {
 
   const lines : Line[] = page.lines
   const pageNumber: number = page.pageNumber
 
+  const updatedLines : Line[] = []
+
+  let result : ReactElement;
 
   if (pageNumber === 1) {
 
-    return <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+    result = <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
       {defs}
       <style>{style}</style>
 
@@ -142,25 +386,43 @@ function showPage(page: Page, optionsR: OptionsRecord) {
       <text x="40" y="87" textAnchor="start" className="tuning">{`Tuning: ${optionsR.tuning}`}</text>
 
       {lines.map((line, index) => {
+
+        const [newLine, code] = showLine(line)
+        updatedLines.push(newLine)
+
         return <Fragment key={index}>
-          {showLine(line)}
+          {code}
         </Fragment>
       })}
 
     </svg>
   } else {
 
-    return <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+    result = <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
       {defs}
       <style>{style}</style>
       {lines.map((line, index) => {
+
+        const [newLine, code] = showLine(line)
+        updatedLines.push(newLine)
+
         return <Fragment key={index}>
-          {showLine(line)}
+          {code}
         </Fragment>
       })}
     </svg>
 
   }
+
+  const newPage : Page = {
+    ...page,
+    lines: updatedLines
+  }
+
+  // TODO
+  // SOME SORT OF END OF PAGE PROPERTY CHECK
+
+  return [newPage, result]
 
 
 }
@@ -171,21 +433,27 @@ function showPage(page: Page, optionsR: OptionsRecord) {
 /* Graphics driver
 1. pages
 2. optionsRecord: all the starting options info to be displayed
-RETURNS all the svgs
+RETURNS the updated pages, and all the svgs
 */
-export function show(pages: Page[], optionsR: OptionsRecord) {
+export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement] {
+
+  let updatedPages : Page[] = []
 
   const result = <Fragment>
 
     {pages.map((page, index) => {
+
+      const [newPage, code] = showPage(page, optionsR)
+      updatedPages.push(newPage)
+
       return <Fragment key={index}>
-        {showPage(page, optionsR)}
+        {code}
       </Fragment>
     })}
 
   </Fragment>
 
-  return result
+  return [updatedPages, result]
 
 
 }

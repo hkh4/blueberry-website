@@ -36,4 +36,30 @@ path.fancy-line-curl {
   transform: scale(0.1,-0.1);
 }
 
+.measure-number {
+  font-size: 7px;
+}
+
+.capo-change {
+  font-size: 7px;
+}
+
+.comment {
+  font-size: 7px;
+}
+
+.measure-barline {
+  stroke-width: 0.7px;
+}
+
+.fret-number {
+  font-family: "Arial";
+  font-weight: bold;
+  font-size: 5.5px;
+}
+
+.fret-number-square {
+  stroke-opacity: 0;
+}
+
 `
