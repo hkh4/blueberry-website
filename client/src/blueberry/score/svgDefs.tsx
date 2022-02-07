@@ -163,6 +163,10 @@ export const defs = <defs>
 
 
   {/* Fret numbers */}
+  <g id="fretx">
+    <path className="fret-number-square" fill="white" d="m -0.2 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <text className="fret-number">X</text>
+  </g>
 
   <g id="fret0">
     <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
@@ -319,8 +323,191 @@ export const defs = <defs>
     <text className="fret-number">30</text>
   </g>
 
+  {/* Grace note fret numbers */}
+  <g id="fretxg">
+    <path className="fret-number-square" fill="white" d="m -0.2 -4 l 3.2 0 l 0 3 l -3.2 0 l 0 -3" />
+    <text className="fret-number-grace">X</text>
+  </g>
+
+  <g id="fret0g">
+    <path className="fret-number-square" fill="white" d="m -0.5 -4 l 3.2 0 l 0 3 l -3.2 0 l 0 -3" />
+    <text className="fret-number-grace">0</text>
+  </g>
+
+  <g id="fret1g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 2.8 0 l 0 3 l -2.8 0 l 0 -3" />
+    <text className="fret-number-grace">1</text>
+  </g>
+
+  <g id="fret2g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 3 0 l 0 3 l -3 0 l 0 -3" />
+    <text className="fret-number-grace">2</text>
+  </g>
+
+  <g id="fret3g">
+    <path className="fret-number-square" fill="white" d="m -0.3 -4 l 3 0 l 0 3 l -3 0 l 0 -3" />
+    <text className="fret-number-grace">3</text>
+  </g>
+
+  <g id="fret4g">
+    <path className="fret-number-square" fill="white" d="m -0.5 -4 l 3.1 0 l 0 3 l -3.1 0 l 0 -3" />
+    <text className="fret-number-grace">4</text>
+  </g>
+
+  <g id="fret5g">
+    <path className="fret-number-square" fill="white" d="m -0.5 -4 l 3.2 0 l 0 3 l -3.2 0 l 0 -3" />
+    <text className="fret-number-grace">5</text>
+  </g>
+
+  <g id="fret6g">
+    <path className="fret-number-square" fill="white" d="m -0.5 -4 l 3.2 0 l 0 3 l -3.2 0 l 0 -3" />
+    <text className="fret-number-grace">6</text>
+  </g>
+
+  <g id="fret7g">
+    <path className="fret-number-square" fill="white" d="m -0.3 -4 l 2.8 0 l 0 3 l -2.8 0 l 0 -3" />
+    <text className="fret-number-grace">7</text>
+  </g>
+
+  <g id="fret8g">
+    <path className="fret-number-square" fill="white" d="m -0.3 -4 l 2.8 0 l 0 3 l -2.8 0 l 0 -3" />
+    <text className="fret-number-grace">8</text>
+  </g>
+
+  <g id="fret9g">
+    <path className="fret-number-square" fill="white" d="m -0.5 -4 l 3.2 0 l 0 3 l -3.2 0 l 0 -3" />
+    <text className="fret-number-grace">9</text>
+  </g>
+
+  <g id="fret10g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">10</text>
+  </g>
+
+  <g id="fret11g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 4.8 0 l 0 3 l -4.8 0 l 0 -3" />
+    <text className="fret-number-grace">11</text>
+  </g>
+
+  <g id="fret12g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.2 0 l 0 3 l -5.2 0 l 0 -3" />
+    <text className="fret-number-grace">12</text>
+  </g>
+
+  <g id="fret13g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.3 0 l 0 3 l -5.3 0 l 0 -3" />
+    <text className="fret-number-grace">13</text>
+  </g>
+
+  <g id="fret14g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.3 0 l 0 3 l -5.3 0 l 0 -3" />
+    <text className="fret-number-grace">14</text>
+  </g>
+
+  <g id="fret15g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">15</text>
+  </g>
+
+  <g id="fret16g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">16</text>
+  </g>
+
+  <g id="fret17g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.2 0 l 0 3 l -5.2 0 l 0 -3" />
+    <text className="fret-number-grace">17</text>
+  </g>
+
+  <g id="fret18g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.3 0 l 0 3 l -5.3 0 l 0 -3" />
+    <text className="fret-number-grace">18</text>
+  </g>
+
+  <g id="fret19g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.3 0 l 0 3 l -5.3 0 l 0 -3" />
+    <text className="fret-number-grace">19</text>
+  </g>
+
+  <g id="fret20g">
+    <path className="fret-number-square" fill="white" d="m -0.5 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">20</text>
+  </g>
+
+  <g id="fret21g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.1 0 l 0 3 l -5.1 0 l 0 -3" />
+    <text className="fret-number-grace">21</text>
+  </g>
+
+  <g id="fret22g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.3 0 l 0 3 l -5.3 0 l 0 -3" />
+    <text className="fret-number-grace">22</text>
+  </g>
+
+  <g id="fret23g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">23</text>
+  </g>
+
+  <g id="fret24g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">24</text>
+  </g>
+
+  <g id="fret25g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">25</text>
+  </g>
+
+  <g id="fret26g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">26</text>
+  </g>
+
+  <g id="fret27g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">27</text>
+  </g>
+
+  <g id="fret28g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">28</text>
+  </g>
+
+  <g id="fret29g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">29</text>
+  </g>
+
+  <g id="fret30g">
+    <path className="fret-number-square" fill="white" d="m -0.4 -4 l 5.4 0 l 0 3 l -5.4 0 l 0 -3" />
+    <text className="fret-number-grace">30</text>
+  </g>
+
+  {/* Rests */}
+  <g id="halfwholerest">
+    <path className="half-whole-rest" d="m 0.37129898 0 l 3.74155126 0 a 0.37129898 0.37129898 0 0 0 0.37129898 -0.37129898 l 0 -1.5708803 a 0.37129898 0.37129898 0 0 0 -0.37129898 -0.37129898 l -3.74155126 0 a 0.37129898 0.37129898 0 0 0 -0.37129898 0.37129898 l 0 1.5708803 a 0.37129898 0.37129898 0 0 0 0.37129898 0.37129898" />
+  </g>
+
+  <g id="quarterrest">
+    <path className="quarter-rest" d="m 0 -12 l 2.8 3.857142857142857 c -2.22857142857 2.71428571429 -1.65714285714 3.42857142857 0.62857142857 5.65714285714 c -2.57142857143 -0.85714285714 -3.4285714285714284 0.57142857142 -1.77142857143 2.57142857143 c 0 0.05714285714 -0.08571428571 0.11428571428 -0.17142857142 0.04285714285 c -3.62857142857 -2.12857142857143 -1.2857142857142858 -4.7 0.22857142857 -3.84285714286 l -2.37142857143 -3.02857142857 c 1.8 -2 1.8 -2.97142857143 0.41428571428 -5.057142857142857 c 0 -0.08571428571 0.1 -0.2 0.24285714285714285 -0.2" />
+  </g>
+
+  {/* Beams */}
+  <g id="dot">
+    <circle r="0.7" />
+  </g>
+
+  <g id="dotg">
+    <circle r="0.55" />
+  </g>
+
 
 </defs>
+
+/*
+1.4857142857142858 -12.12857142857143
+*/
 
 
 // function num(s, d) {

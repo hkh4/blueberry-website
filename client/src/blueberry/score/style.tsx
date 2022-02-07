@@ -52,14 +52,29 @@ path.fancy-line-curl {
   stroke-width: 0.7px;
 }
 
-.fret-number {
+.fret-number, .fret-number-grace {
   font-family: "Arial";
   font-weight: bold;
+}
+
+.fret-number {
   font-size: 5.5px;
+}
+
+.fret-number-grace {
+  font-size: 4px;
 }
 
 .fret-number-square {
   stroke-opacity: 0;
+}
+
+.half-whole-rest {
+  stroke-width: 0.1px;
+}
+
+.quarter-rest {
+  stroke-width: 0.1px;
 }
 
 `

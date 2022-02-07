@@ -1,4 +1,4 @@
-import { Page, PropertyList, OptionsRecord, Line, Measure, Element, SingleNote, GroupNote, TupletNote, Note, NormalGuitarNote, X, Rest, GuitarString, Ints } from "./types"
+import { Page, PropertyList, OptionsRecord, Line, Measure, Element, SingleNote, GroupNote, TupletNote, Note, NormalGuitarNote, X, Rest, GuitarString, Ints, isRhythmNumberNumber, Rhythm } from "./types"
 import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer, emptyElementWidth } from "./constants"
 import { Fragment, ReactElement } from "react"
 import { style } from "./style"
@@ -63,34 +63,253 @@ function showNormalGuitarNote(x: number, y: number, guitarString: GuitarString, 
 
 
 
-/* Show a singleNote
-1. singleNote
-RETURNS code to show this note
+/* Show an x
+1. x location
+2. y location
+3. guitarString: what string of the guitar is this note on
+RETURNS code
 */
-function showSingleNote(singleNote: SingleNote, x: number, y: number) : ReactElement {
+function showX(x: number, y: number, guitarString: GuitarString) : ReactElement {
+
+  const newY = (y + 2) - (6 * (guitarString - 1))
+
+  return <use href="#fretx" x={x} y={newY} />
+
+}
+
+
+
+
+/* Helper to show a single grace note
+1. graceNote to be shown
+2. x location
+3. y location
+4. scale for width
+RETURNS the new x value, the updated grace note, and the code
+*/
+function showGraceNote(graceNote: Element, x: number, y: number, scale: number) : [number, Element, ReactElement] {
+
+  let code : ReactElement = <></>
+
+  // ******** Helper functions
+  function showNormalGraceNote(x: number, y: number, guitarString: GuitarString, fret: number) : ReactElement {
+
+    const newY = (y + 1.5) - (6 * (guitarString - 1))
+    return <use href={`#fret${fret}g`} x={x} y={newY} />
+
+  }
+
+  function showXGrace(x: number, y: number, guitarString: GuitarString) : ReactElement {
+
+    const newY = (y + 1.5) - (6 * (guitarString - 1))
+    return <use href="#fretxg" x={x} y={newY} />
+
+  }
+
+  // ********
+  const noteInfo = graceNote.noteInfo
+
+  switch (noteInfo.kind) {
+
+    case "singleNote":
+
+      const note = noteInfo.note
+
+      if (note.noteKind === "normalGuitarNote") {
+        code = showNormalGraceNote(x, y, note.string, note.fret)
+
+      } else {
+        code = showXGrace(x, y, note.string)
+
+      }
+
+      break;
+
+    // case "groupNote":
+    //   break;
+    // case "tupletNote":
+    //   break;
+    default:
+  }
+
+  const newGraceNote : Element = {
+    ...graceNote,
+    location: [x,y]
+  }
+
+  const newX = x + (scale * graceNote.width)
+
+  return [newX, newGraceNote, code]
+
+}
+
+
+
+
+function showGraceNotes(graceNotes: Element[], x: number, y: number, scale: number) : [number, Element[], ReactElement] {
+
+  let graceCode : ReactElement = <></>
+  let newX : number = x
+  let newGraceNotes : Element[] = []
+  let newGraceNote : Element
+
+  const result : ReactElement = <>
+
+    {graceNotes.map((g, index) => {
+
+      [newX, newGraceNote, graceCode] = showGraceNote(g, newX, y, scale)
+      newGraceNotes.push(newGraceNote)
+
+      return <Fragment key={index}>
+        {graceCode}
+      </Fragment>
+
+    })}
+
+  </>
+
+  return [newX, newGraceNotes, result]
+
+}
+
+
+
+
+
+/* Show a singleNote
+1. element with the singleNote inside it
+2. x location
+3. y location
+4. scale for widths
+RETURNS the updated element, and code to show this note
+*/
+function showSingleNote(element: Element, x: number, y: number, scale: number) : [Element, ReactElement] {
+
+  // typecheck
+  if (element.noteInfo.kind !== "singleNote") {
+    throw new Error("Internal error in showSingleNote. A different notehead was given")
+  }
+  const singleNote : SingleNote = element.noteInfo
+
+  let newX : number = x
+  let graceCode : ReactElement = <></>
+  let newGraceNotes : Element[] = []
+
+  // Show grace notes, if needed
+  if (element.graceNotes.length > 0) {
+    [newX, newGraceNotes, graceCode] = showGraceNotes(element.graceNotes, x, y, scale)
+  }
 
   const note : Note = singleNote.note
   let noteCode : ReactElement = <></>
 
-  // First, show any grace notes if they exist
-
   // Then, show the note itself
   if (note.noteKind === "normalGuitarNote") {
     // normalguitarnote
-    noteCode = showNormalGuitarNote(x, y, note.string, note.fret)
+    noteCode = showNormalGuitarNote(newX, y, note.string, note.fret)
 
   } else {
     // x note
-
+    noteCode = showX(newX, y, note.string)
   }
 
   const result = <>
+    {graceCode}
     {noteCode}
   </>
 
-  return result
+  const newElement : Element = {
+    ...element,
+    location: [newX,y]
+  }
+
+  return [newElement, result]
 
 }
+
+
+
+
+/* Show a rest
+1. element: rest to be shown
+2. x location
+3. y location
+4. width of the whole measure, used for 0 rests
+RETURN the rest code
+*/
+function showRest(element: Element, x: number, y: number, width: number) : ReactElement {
+
+  let code: ReactElement = <></>
+
+  const duration : Rhythm = element.duration
+
+  // Make sure it isn't a "norhythm"
+  if (!isRhythmNumberNumber(duration)) {
+    throw new Error("Internal error in showRest. A 'norhythm' shouldn't appear here")
+  }
+
+  const [rhythm, dots] = duration
+
+  switch (rhythm) {
+
+    case 0:
+
+      code = <>
+        <use href="#halfwholerest" x={x + (width / 2) - 7} y={y - 15.8} />
+      </>
+      break;
+    case 1:
+
+      const dotsArray1 : ReactElement[] = []
+      // Create the dots
+      for (let i = 0; i < dots; i++) {
+        dotsArray1.push(<use key={i} href="#dot" x={x + 6.3 + (i * 1.7)} y={y - 19} />)
+      }
+      code = <>
+        <use href="#halfwholerest" x={x} y={y - 15.8} />
+        {dotsArray1}
+      </>
+      break;
+    case 2:
+
+      const dotsArray2 : ReactElement[] = []
+      // Create the dots
+      for (let i = 0; i < dots; i++) {
+        dotsArray2.push(<use key={i} href="#dot" x={x + 6.3 + (i * 1.7)} y={y - 14.5} />)
+      }
+      code = <>
+        <use href="#halfwholerest" x={x} y={y - 11.9} />
+        {dotsArray2}
+      </>
+      break;
+    case 4:
+
+      const dotsArray4 : ReactElement[] = []
+      // Create the dots
+      for (let i = 0; i < dots; i++) {
+        dotsArray4.push(<use key={i} href="#dot" x={x + 4.7 + (i * 1.7)} y={y - 15.7} />)
+      }
+      code = <>
+        <use href="#quarterrest" x={x} y={y - 9} />
+        {dotsArray4}
+      </>
+      break;
+    case 8:
+      break;
+    case 16:
+      break;
+    case 32:
+      break;
+    case 64:
+      break;
+    default:
+
+  }
+
+  return code
+
+}
+
 
 
 
@@ -105,10 +324,8 @@ RETURNS the updated element, the code, and the new x location for the next eleme
 */
 function showElement(element: Element, width: number, scale: number, x: number, y: number) : [Element, ReactElement, number] {
 
-  let newElement : Element = {
-    ...element,
-    location: [x,y]
-  }
+  let newElement : Element
+
   let newX : number = x;
   let code : ReactElement = <></>
 
@@ -128,34 +345,52 @@ function showElement(element: Element, width: number, scale: number, x: number, 
       </>
 
       newX += (scale * element.width)
+
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
       break;
 
     case "buffer":
       // do nothing
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
       break;
     case "empty":
       newX += 5
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
       break;
 
     case "singleNote":
 
-      code = showSingleNote(notehead, x, y)
+      [newElement, code] = showSingleNote(element, x, y, scale)
       newX += (scale * element.width)
       break;
 
-    case "groupNote":
-
-      newX += (scale * element.width)
-      break;
-
-    case "tupletNote":
-
-      newX += (scale * element.width)
-      break;
-
+    // case "groupNote":
+    //
+    //   newX += (scale * element.width)
+    //   break;
+    //
+    // case "tupletNote":
+    //
+    //   newX += (scale * element.width)
+    //   break;
+    //
     case "rest":
 
       newX += (scale * element.width)
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
+      code = showRest(element, x, y, width)
       break;
 
     case "barline":
@@ -164,6 +399,11 @@ function showElement(element: Element, width: number, scale: number, x: number, 
         <path className="measure-barline" d={`M ${x - 5} ${y + 0.2} l 0 -30.4`} />
       </>
       newX += (scale * element.width)
+
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
 
       break;
 
