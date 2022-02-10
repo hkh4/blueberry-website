@@ -56,7 +56,12 @@ function showNormalGuitarNote(x: number, y: number, guitarString: GuitarString, 
 
   const newY = (y + 2) - (6 * (guitarString - 1))
 
-  return <use href={`#fret${fret}`} x={x} y={newY} />
+  if (fret >= 10) {
+    return <use href={`#fret${fret}`} x={x - 1.7} y={newY} />
+  } else {
+    return <use href={`#fret${fret}`} x={x} y={newY} />
+  }
+
 
 }
 
@@ -95,7 +100,12 @@ function showGraceNote(graceNote: Element, x: number, y: number, scale: number) 
   function showNormalGraceNote(x: number, y: number, guitarString: GuitarString, fret: number) : ReactElement {
 
     const newY = (y + 1.5) - (6 * (guitarString - 1))
-    return <use href={`#fret${fret}g`} x={x} y={newY} />
+
+    if (fret >= 10) {
+      return <use href={`#fret${fret}g`} x={x - 1.15} y={newY} />
+    } else {
+      return <use href={`#fret${fret}g`} x={x} y={newY} />
+    }
 
   }
 
@@ -125,8 +135,28 @@ function showGraceNote(graceNote: Element, x: number, y: number, scale: number) 
 
       break;
 
-    // case "groupNote":
-    //   break;
+    case "groupNote":
+
+      const notes = noteInfo.notes
+
+      code = <>
+        {
+          notes.map((note, index) => {
+            return <Fragment key={index}>
+              {
+                note.noteKind === "normalGuitarNote" ? (
+                  showNormalGraceNote(x, y, note.string, note.fret)
+                ) : (
+                  showXGrace(x, y, note.string)
+                )
+              }
+            </Fragment>
+          })
+        }
+      </>
+
+      break;
+
     // case "tupletNote":
     //   break;
     default:
@@ -176,6 +206,86 @@ function showGraceNotes(graceNotes: Element[], x: number, y: number, scale: numb
 
 
 
+/* Show a Note type
+1. note to be shown
+2. x location
+3. y location
+RETURNS the code
+*/
+function showNote(note: Note, x: number, y: number) : ReactElement {
+
+  // Then, show the note itself
+  if (note.noteKind === "normalGuitarNote") {
+    // normalguitarnote
+    return showNormalGuitarNote(x, y, note.string, note.fret)
+
+  } else {
+    // x note
+    return showX(x, y, note.string)
+  }
+
+}
+
+
+
+
+
+/* Show a groupNote
+1. element with the groupNote inside it
+2. x location
+3. y location
+4. scale for widths
+RETURNS the updated element, and code to show this note
+*/
+function showGroupNote(element: Element, x: number, y: number, scale: number) : [Element, ReactElement] {
+
+  // typecheck
+  if (element.noteInfo.kind !== "groupNote") {
+    throw new Error("Internal error in showGroupNote. A different notehead was given")
+  }
+  const groupNote : GroupNote = element.noteInfo
+
+  let newX : number = x
+  let graceCode : ReactElement = <></>
+  let newGraceNotes : Element[] = []
+
+  // Show grace notes, if needed
+  if (element.graceNotes.length > 0) {
+    [newX, newGraceNotes, graceCode] = showGraceNotes(element.graceNotes, x, y, scale)
+  }
+
+  // Then, show the note itself
+  const notes : Note[] = groupNote.notes
+
+  const noteCode = <>
+    {
+      notes.map((note, index) => {
+        return <Fragment key={index}>
+          {showNote(note, newX, y)}
+        </Fragment>
+      })
+    }
+  </>
+
+
+  const result = <>
+    {graceCode}
+    {noteCode}
+  </>
+
+  const newElement : Element = {
+    ...element,
+    location: [newX,y]
+  }
+
+  return [newElement, result]
+
+}
+
+
+
+
+
 /* Show a singleNote
 1. element with the singleNote inside it
 2. x location
@@ -200,18 +310,10 @@ function showSingleNote(element: Element, x: number, y: number, scale: number) :
     [newX, newGraceNotes, graceCode] = showGraceNotes(element.graceNotes, x, y, scale)
   }
 
-  const note : Note = singleNote.note
-  let noteCode : ReactElement = <></>
-
   // Then, show the note itself
-  if (note.noteKind === "normalGuitarNote") {
-    // normalguitarnote
-    noteCode = showNormalGuitarNote(newX, y, note.string, note.fret)
+  const note : Note = singleNote.note
+  const noteCode : ReactElement = showNote(note, newX, y)
 
-  } else {
-    // x note
-    noteCode = showX(newX, y, note.string)
-  }
 
   const result = <>
     {graceCode}
@@ -407,11 +509,12 @@ function showElement(element: Element, width: number, scale: number, x: number, 
       newX += (scale * element.width)
       break;
 
-    // case "groupNote":
-    //
-    //   newX += (scale * element.width)
-    //   break;
-    //
+    case "groupNote":
+
+      [newElement, code] = showGroupNote(element, x, y, scale)
+      newX += (scale * element.width)
+      break;
+
     // case "tupletNote":
     //
     //   newX += (scale * element.width)
