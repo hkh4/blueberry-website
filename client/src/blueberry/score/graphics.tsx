@@ -295,12 +295,46 @@ function showRest(element: Element, x: number, y: number, width: number) : React
       </>
       break;
     case 8:
+
+      const dotsArray8 : ReactElement[] = []
+      // Create the dots
+      for (let i = 0; i < dots; i++) {
+        dotsArray8.push(<use key={i} href="#dot" x={x + 5.3 + (i * 1.7)} y={y - 16} />)
+      }
+      code = <>
+        <use href="#eighthrest" x={x} y={y - 17.6} />
+        {dotsArray8}
+      </>
       break;
     case 16:
+
+      const dotsArray16 : ReactElement[] = []
+      // Create the dots
+      for (let i = 0; i < dots; i++) {
+        dotsArray16.push(<use key={i} href="#dot" x={x + 5.6 + (i * 1.7)} y={y - 16} />)
+      }
+      code = <>
+        <use href="#sixteenthrest" x={x} y={y - 17.6} />
+        {dotsArray16}
+      </>
       break;
     case 32:
+
+      const dotsArray32 : ReactElement[] = []
+      // Create the dots
+      for (let i = 0; i < dots; i++) {
+        dotsArray32.push(<use key={i} href="#dot" x={x + 6.2 + (i * 1.7)} y={y - 20} />)
+      }
+      code = <>
+        <use href="#thirtysecondrest" x={x} y={y - 21.5} />
+        {dotsArray32}
+      </>
       break;
     case 64:
+
+      code = <>
+        <use href="#sixtyfourthrest" x={x} y={y - 21.5} />
+      </>
       break;
     default:
 

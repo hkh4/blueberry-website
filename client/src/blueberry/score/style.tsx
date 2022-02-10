@@ -69,12 +69,24 @@ path.fancy-line-curl {
   stroke-opacity: 0;
 }
 
-.half-whole-rest {
-  stroke-width: 0.1px;
+.half-whole-rest, .quarter-rest, .eighth-rest, .rest-curl {
+  stroke-width: 0.001px;
 }
 
-.quarter-rest {
-  stroke-width: 0.1px;
+.eighth-rest {
+  transform: scale(0.00075, -0.00075);
+}
+
+.sixteenth-rest {
+  transform: scale(0.0006, -0.0006);
+}
+
+.thirtysecond-rest {
+  transform: scale(0.00073, -0.00073);
+}
+
+.sixtyfourth-rest {
+  transform: scale(0.0009, -0.0009)
 }
 
 `
