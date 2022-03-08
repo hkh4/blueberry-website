@@ -3,6 +3,7 @@ import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuff
 import { Fragment, ReactElement } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
+import { beam, beamGraceNotes } from "./beams"
 
 // Property list that will be used and updated throughout
 let propertyList : PropertyList = {
@@ -157,8 +158,37 @@ function showGraceNote(graceNote: Element, x: number, y: number, scale: number) 
 
       break;
 
-    // case "tupletNote":
-    //   break;
+    case "tupletNote":
+
+      const notesT = noteInfo.notes
+      let xWithin = x
+      let newElement : Element
+      let elementCode : ReactElement
+
+      let newElements : Element[] = []
+
+      code = <>
+        {
+          notesT.map((el, index) => {
+
+            [xWithin, newElement, elementCode] = showGraceNote(el, xWithin, y, scale)
+            newElements.push(newElement)
+
+            return <Fragment key={index}>
+              {elementCode}
+            </Fragment>
+
+          })
+        }
+      </>
+
+      graceNote.noteInfo = {
+        kind: "tupletNote",
+        notes: newElements
+      }
+
+      break;
+
     default:
   }
 
@@ -275,10 +305,65 @@ function showGroupNote(element: Element, x: number, y: number, scale: number) : 
 
   const newElement : Element = {
     ...element,
-    location: [newX,y]
+    location: [x,y]
   }
 
   return [newElement, result]
+
+}
+
+
+
+
+/* Show a tupletNote
+1. element with the tupletNote inside it
+2. x location
+3. y location
+4. scale for widths
+RETURNS the updated element, and code to show this note
+*/
+function showTupletNote(element: Element, x: number, y: number, scale: number) : [Element, ReactElement] {
+
+  // typecheck
+  if (element.noteInfo.kind !== "tupletNote") {
+    throw new Error("Internal error in showTupletNote. A different notehead was given")
+  }
+  const tupletNote : TupletNote = element.noteInfo
+  const tupletElements : Element[] = tupletNote.notes
+
+  let newX : number = x
+  let newElement : Element
+  let elementCode : ReactElement
+
+  let newElements : Element[] = []
+
+  const result = <>
+
+    {
+      tupletElements.map((el, index) => {
+
+        [newElement, elementCode, newX] = showElement(el, 0, scale, newX, y)
+        newElements.push(newElement)
+
+        return <Fragment key={index}>
+          {elementCode}
+        </Fragment>
+
+      })
+    }
+
+  </>
+
+  const newTupletElement : Element = {
+    ...element,
+    location: [x,y],
+    noteInfo: {
+      kind: "tupletNote",
+      notes: newElements
+    }
+  }
+
+  return [newTupletElement, result]
 
 }
 
@@ -322,7 +407,7 @@ function showSingleNote(element: Element, x: number, y: number, scale: number) :
 
   const newElement : Element = {
     ...element,
-    location: [newX,y]
+    location: [x,y]
   }
 
   return [newElement, result]
@@ -470,7 +555,6 @@ function showElement(element: Element, width: number, scale: number, x: number, 
 
   const notehead = element.noteInfo
 
-  // TODO
   switch (notehead.kind) {
 
     case "timeChange":
@@ -515,11 +599,12 @@ function showElement(element: Element, width: number, scale: number, x: number, 
       newX += (scale * element.width)
       break;
 
-    // case "tupletNote":
-    //
-    //   newX += (scale * element.width)
-    //   break;
-    //
+    case "tupletNote":
+
+      [newElement, code] = showTupletNote(element, x, y, scale)
+      newX += (scale * element.width)
+      break;
+
     case "rest":
 
       newX += (scale * element.width)
@@ -722,9 +807,6 @@ function showLine(line: Line) : [Line, ReactElement] {
 
   </>
 
-  // TODO
-  // END OF LINE PROPERTY CHECKS
-
   const newLine = {
     ...line,
     measures: updatedMeasures
@@ -795,9 +877,6 @@ function showPage(page: Page, optionsR: OptionsRecord) : [Page, ReactElement] {
     ...page,
     lines: updatedLines
   }
-
-  // TODO
-  // SOME SORT OF END OF PAGE PROPERTY CHECK
 
   return [newPage, result]
 

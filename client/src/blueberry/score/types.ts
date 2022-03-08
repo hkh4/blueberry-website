@@ -216,7 +216,7 @@ export type TimeChange = {
 
 export type Notehead = SingleNote | GroupNote | TupletNote | Rest | Barline | Empty | Buffer | TimeChange
 
-
+ 
 export type Element = {
   noteInfo: Notehead,
   duration: Rhythm,

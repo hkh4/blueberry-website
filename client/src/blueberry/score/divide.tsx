@@ -572,6 +572,8 @@ export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, 
     // Add the width
     element.width = width
 
+    console.log(width)
+
     // If it is a grace note, add it to the grace list. Otherwise, add it to the element list
     if (isGrace) {
       innerGraceNotes.push(element)
