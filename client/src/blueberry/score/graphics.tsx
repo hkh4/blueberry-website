@@ -5,6 +5,7 @@ import { style } from "./style"
 import { defs } from "./svgDefs"
 import { beam, beamGraceNotes } from "./beams"
 
+
 // Property list that will be used and updated throughout
 let propertyList : PropertyList = {
   slurStart: [[0.0,0.0], false, false],
@@ -688,14 +689,23 @@ function showMeasure(measure: Measure, x: number, y: number, scale: number) : [M
     })}
   </>
 
-  // TODO
+  const noRhythm : Rhythm = "norhythm"
+
   // Beams
+  const beamCode = beam(updatedElements, [0.0,0.0], noRhythm, noRhythm, 0.0, measure.time, 0, false)
+  const graceBeamCode = beamGraceNotes(updatedElements, measure.time)
 
 
   const newMeasure : Measure = {
     ...measure,
     elements: updatedElements
   }
+
+  const finalCode = <>
+    {result}
+    {beamCode}
+    {graceBeamCode}
+  </>
 
   return [newMeasure, result, newWidth]
 

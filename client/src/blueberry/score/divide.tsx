@@ -1,4 +1,4 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts } from "./types"
 import { evalInnerOption } from "./options"
 import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth } from "./constants"
 
@@ -572,8 +572,6 @@ export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, 
     // Add the width
     element.width = width
 
-    console.log(width)
-
     // If it is a grace note, add it to the grace list. Otherwise, add it to the element list
     if (isGrace) {
       innerGraceNotes.push(element)
@@ -666,19 +664,40 @@ function widthStart(element: Element, nextStart: number, baseBeat: RhythmNumber,
 
   const newNextStart = totalRhythm + nextStart
 
-  // If it's a tuplet note, the width was already taken care of. Just set nextStart and return
+  // If it's a tuplet note, the width was already taken care of
   if (element.noteInfo.kind === "tupletNote") {
-    let newElement : Element = {
-      ...element,
-      start: nextStart
-    }
+
+    const noteInfo : TupletNote = element.noteInfo
 
     // if it's a grace note, don't update nextStart. Otherwise, do update
     if (isGrace) {
-      return [newElement, nextStart]
-    } else {
-      return [newElement, newNextStart]
+      return [element, nextStart]
     }
+
+    // update start for the whole tuplet, and for each element in the tuplet
+
+    let newNotes: Element[] = []
+
+    noteInfo.notes.forEach(n => {
+      const newNote : Element = {
+        ...n,
+        start: nextStart
+      }
+      newNotes.push(newNote)
+    })
+
+    let newNoteInfo : Notehead = {
+      kind: "tupletNote",
+      notes: newNotes
+    }
+
+    let newElement : Element = {
+      ...element,
+      start: nextStart,
+      noteInfo: newNoteInfo
+    }
+
+    return [newElement, newNextStart]
 
   }
 
