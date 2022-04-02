@@ -306,7 +306,8 @@ function showGroupNote(element: Element, x: number, y: number, scale: number) : 
 
   const newElement : Element = {
     ...element,
-    location: [x,y]
+    location: [newX,y],
+    graceNotes: newGraceNotes
   }
 
   return [newElement, result]
@@ -408,7 +409,8 @@ function showSingleNote(element: Element, x: number, y: number, scale: number) :
 
   const newElement : Element = {
     ...element,
-    location: [x,y]
+    location: [newX,y],
+    graceNotes: newGraceNotes
   }
 
   return [newElement, result]
@@ -475,7 +477,7 @@ function showRest(element: Element, x: number, y: number, width: number) : React
       const dotsArray4 : ReactElement[] = []
       // Create the dots
       for (let i = 0; i < dots; i++) {
-        dotsArray4.push(<use key={i} href="#dot" x={x + 4.7 + (i * 1.7)} y={y - 15.7} />)
+        dotsArray4.push(<use key={i} href="#dot" x={x + 4.5 + (i * 1.7)} y={y - 15.7} />)
       }
       code = <>
         <use href="#quarterrest" x={x} y={y - 9} />
@@ -487,7 +489,7 @@ function showRest(element: Element, x: number, y: number, width: number) : React
       const dotsArray8 : ReactElement[] = []
       // Create the dots
       for (let i = 0; i < dots; i++) {
-        dotsArray8.push(<use key={i} href="#dot" x={x + 5.3 + (i * 1.7)} y={y - 16} />)
+        dotsArray8.push(<use key={i} href="#dot" x={x + 4.4 + (i * 1.7)} y={y - 16} />)
       }
       code = <>
         <use href="#eighthrest" x={x} y={y - 17.6} />
@@ -499,7 +501,7 @@ function showRest(element: Element, x: number, y: number, width: number) : React
       const dotsArray16 : ReactElement[] = []
       // Create the dots
       for (let i = 0; i < dots; i++) {
-        dotsArray16.push(<use key={i} href="#dot" x={x + 5.6 + (i * 1.7)} y={y - 16} />)
+        dotsArray16.push(<use key={i} href="#dot" x={x + 4.4 + (i * 1.7)} y={y - 16} />)
       }
       code = <>
         <use href="#sixteenthrest" x={x} y={y - 17.6} />
@@ -511,7 +513,7 @@ function showRest(element: Element, x: number, y: number, width: number) : React
       const dotsArray32 : ReactElement[] = []
       // Create the dots
       for (let i = 0; i < dots; i++) {
-        dotsArray32.push(<use key={i} href="#dot" x={x + 6.2 + (i * 1.7)} y={y - 20} />)
+        dotsArray32.push(<use key={i} href="#dot" x={x + 4.5 + (i * 1.7)} y={y - 20} />)
       }
       code = <>
         <use href="#thirtysecondrest" x={x} y={y - 21.5} />
@@ -636,7 +638,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
   }
 
   const result = <>
-    {comment}
+    {element.comments && comment}
     {code}
   </>
 
@@ -705,9 +707,10 @@ function showMeasure(measure: Measure, x: number, y: number, scale: number) : [M
     {result}
     {beamCode}
     {graceBeamCode}
+
   </>
 
-  return [newMeasure, result, newWidth]
+  return [newMeasure, finalCode, newWidth]
 
 }
 

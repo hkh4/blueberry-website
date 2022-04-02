@@ -89,4 +89,24 @@ path.fancy-line-curl {
   transform: scale(0.0009, -0.0009)
 }
 
+.tuplet-bracket {
+  stroke-width: 0.4px;
+}
+
+.tuplet-bracket-text {
+  font-size: 5px;
+}
+
+.beam-stem-grace {
+  stroke-width: 0.5px;
+}
+
+.beam-stem {
+  stroke-width: 0.7px;
+}
+
+.grace-slash {
+  stroke-width: 0.4px;
+}
+
 `
