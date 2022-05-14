@@ -390,8 +390,12 @@ const x64 : RhythmNumber = 64
 
 export const arrayOfRhythms : RhythmNumber[] = [x1, x2, x4, x8, x16, x32, x64]
 
-
-
+export const numberOfBeams = {
+  8: 1,
+  16: 2,
+  32: 3,
+  64: 4
+}
 
 
 

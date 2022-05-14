@@ -109,4 +109,12 @@ path.fancy-line-curl {
   stroke-width: 0.4px;
 }
 
+.beam {
+  stroke-width: 1.6px;
+}
+
+.beam-grace {
+  stroke-width: 1.1px;
+}
+
 `
