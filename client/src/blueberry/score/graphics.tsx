@@ -59,7 +59,7 @@ function showNormalGuitarNote(x: number, y: number, guitarString: GuitarString, 
   const newY = (y + 2) - (6 * (guitarString - 1))
 
   if (fret >= 10) {
-    return <use href={`#fret${fret}`} x={x - 1.7} y={newY} /> 
+    return <use href={`#fret${fret}`} x={x - 1.7} y={newY} />
   } else {
     return <use href={`#fret${fret}`} x={x} y={newY} />
   }

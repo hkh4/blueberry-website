@@ -16,7 +16,19 @@ function drawFlags(x: number, y: number, beamsToAdd: number, isGrace: boolean) :
 
       {
         l.map((el, index) => {
-          return <use href="#flag-grace" x={x + 0.99} y={y - 41.2} />
+          return <Fragment key={index}>
+            {
+              beamsToAdd === 1 ? (
+                <use href="#flag-grace" x={x + 0.98} y={y - 41.2} />
+              ) : (
+                <>
+                  <line className="beam-stem-grace" x1={x + 1.1} y1={y - 40} x2={x + 1.1} y2={y - 40 - (el * 2.2 - 2.1)} />
+                  <use href="#flag-grace" x={x + 0.98} y={y - 40.2 - (el * 2.2)} />
+                </>
+              )
+            }
+
+          </Fragment>
         })
       }
 
@@ -28,7 +40,18 @@ function drawFlags(x: number, y: number, beamsToAdd: number, isGrace: boolean) :
 
       {
         l.map((el, index) => {
-          return <use href="#flag" x={x + 1.31} y={y - 43.7} />
+          return <Fragment key={index}>
+            {
+              beamsToAdd === 1 ? (
+                <use href="#flag" x={x + 1.32} y={y - 43.7} />
+              ) : (
+                <>
+                <line className="beam-stem" x1={x + 1.5} y1={y - 42} x2={x + 1.5} y2={y - 42 - (el * 4 - 2)} />
+                <use href="#flag" x={x + 1.32} y={y - 42.7 - (el * 4)} />
+                </>
+              )
+            }
+          </Fragment>
         })
       }
 
@@ -58,7 +81,7 @@ function endingStubs(x: number, y: number, beamsToAdd: number, isGrace: boolean)
 
       {
         l.map((el, index) => {
-          return <line key={index} className="beam-grace" x1={x - 0.9} y1={y - 40 + (el * 1.5)} x2={x + 1.4} y2={y - 40 + (el * 1.5)} />
+          return <line key={index} className="beam-grace" x1={x - 1.3} y1={y - 40 + (el * 1.5)} x2={x + 1.1} y2={y - 40 + (el * 1.5)} />
         })
       }
 
@@ -70,7 +93,7 @@ function endingStubs(x: number, y: number, beamsToAdd: number, isGrace: boolean)
 
       {
         l.map((el, index) => {
-          return <line key={index} className="beam" x1={x - 1.5} y1={y - 42 + (el * 2.4)} x2={x + 1.7} y2={y - 42 + (el * 2.4)} />
+          return <line key={index} className="beam" x1={x - 1.95} y1={y - 42 + (el * 2.4)} x2={x + 1.7} y2={y - 42 + (el * 2.4)} />
         })
       }
 
@@ -112,7 +135,7 @@ function initialStubs(x: number, y: number, beamsToAdd: number, isGrace: boolean
 
       {
         l.map((el, index) => {
-          return <line key={index} className="beam" x1={x + 1.65} y1={y - 42 + (el * 2.4)} x2={x + 5.65} y2={y - 42 + (el * 2.4)} />
+          return <line key={index} className="beam" x1={x + 1.6} y1={y - 42 + (el * 2.4)} x2={x + 5.25} y2={y - 42 + (el * 2.4)} />
         })
       }
 
@@ -241,7 +264,7 @@ function beamByTimeHelper(element: Element, currentRhythmNumber: RhythmNumber, l
 
         const numberOfBeamsLastLast = numberOfBeams[lastLastRhythmNumber]
 
-        if (numberOfBeamsLastLast < numberOfBeams) {
+        if (numberOfBeamsLastLast < beamsOfCurrent) {
           // If this note has more beams than lastlast, then last gets an initial stub
           const iStubs : ReactElement = initialStubs(x, y, beamsOfPrevious, isGrace)
 
@@ -648,9 +671,49 @@ function beamNote(element: Element, lastLocation: [number, number], lastRhythm: 
       return [code, lastBeamed]
   }
 
-  // TODO if not a note, do the end checks. Add grace curve if needed, check beam flags and stubs
+  // if not a note, do the end checks. Add grace curve if needed, check beam flags and stubs
 
-  return [<></>, 0]
+  let graceCurve : ReactElement = <></>
+  const [oldX, oldY] = lastLocation
+  const [newX, newY] = element.location
+
+  const x1 = oldX + 2
+  const y1 = oldY - 42
+  const x2 = newX + 1
+  const y2 = newY - 44
+
+  if (isGrace) {
+    graceCurve = <path className="grace-curve" d={`M ${x1} ${y1} C ${x1 + ((x2 - x1) * 0.13043478)} ${y1 - 2.5}, ${x1 + ((x2 - x1) * 0.63043478)} ${y1 - 3}, ${x2} ${y2}`} />
+  }
+
+  let beamCode: ReactElement = <></>
+
+  if (isRhythmNumberNumber(lastRhythm)) {
+
+    const [lastRhythmNumber, _] = lastRhythm
+
+    if ([8,16,32,64].includes(lastRhythmNumber)) {
+
+      const beamsOfPrevious = numberOfBeams[lastRhythmNumber]
+      switch (lastBeamed) {
+
+        case 3:
+          beamCode = endingStubs(oldX, oldY, beamsOfPrevious, isGrace)
+          break;
+        case 0:
+          beamCode = drawFlags(oldX, oldY, beamsOfPrevious, isGrace)
+          break;
+      }
+    }
+  }
+
+  const result = <>
+    {beamCode}
+    {graceCurve}
+  </>
+
+
+  return [result, 0]
 
 
 

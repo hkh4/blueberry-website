@@ -125,4 +125,9 @@ path.fancy-line-curl {
   transform: scale(0.00048, -0.00048);
 }
 
+.grace-curve {
+  stroke-width: 0.7px;
+  fill: transparent;
+}
+
 `
