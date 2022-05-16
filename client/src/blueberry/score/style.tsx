@@ -117,4 +117,12 @@ path.fancy-line-curl {
   stroke-width: 1.1px;
 }
 
+.flag {
+  transform: scale(0.00062,-0.00062);
+}
+
+.flag-grace {
+  transform: scale(0.00048, -0.00048);
+}
+
 `

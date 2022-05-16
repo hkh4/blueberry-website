@@ -32,8 +32,6 @@ export default function interpret(options: ScoreOption[], elements: Expr[]) {
   // Split the lines into pages
   const pages = dividePages(lines)
 
-  console.log(pages)
-
   // Showtime!
   const [newPages, resultSVG] = show(pages, optionsR)
 

@@ -3,6 +3,44 @@ import { numberOfBeams } from "./constants"
 import { Fragment, ReactElement } from "react"
 
 
+
+/* Draw flags on lone 8th, 16th, 32nd, and 64th notes
+*/
+function drawFlags(x: number, y: number, beamsToAdd: number, isGrace: boolean) : ReactElement {
+
+  const l = Array.from({length: beamsToAdd}, (_, i) => i)
+
+  if (isGrace) {
+
+    return <>
+
+      {
+        l.map((el, index) => {
+          return <use href="#flag-grace" x={x + 0.99} y={y - 41.2} />
+        })
+      }
+
+    </>
+
+  } else {
+
+    return <>
+
+      {
+        l.map((el, index) => {
+          return <use href="#flag" x={x + 1.31} y={y - 43.7} />
+        })
+      }
+
+    </>
+  }
+
+}
+
+
+
+
+
 /* Draw the stubs at the end of the note
 1. x is the x location
 2. y is the y location
@@ -12,7 +50,32 @@ RETURNS code
 */
 function endingStubs(x: number, y: number, beamsToAdd: number, isGrace: boolean) : ReactElement {
 
-  return <></>
+  const l = Array.from({length: beamsToAdd}, (_, i) => i)
+
+  if (isGrace) {
+
+    return <>
+
+      {
+        l.map((el, index) => {
+          return <line key={index} className="beam-grace" x1={x - 0.9} y1={y - 40 + (el * 1.5)} x2={x + 1.4} y2={y - 40 + (el * 1.5)} />
+        })
+      }
+
+    </>
+
+  } else {
+
+    return <>
+
+      {
+        l.map((el, index) => {
+          return <line key={index} className="beam" x1={x - 1.5} y1={y - 42 + (el * 2.4)} x2={x + 1.7} y2={y - 42 + (el * 2.4)} />
+        })
+      }
+
+    </>
+  }
 
 }
 
@@ -29,7 +92,32 @@ RETURNS code
 */
 function initialStubs(x: number, y: number, beamsToAdd: number, isGrace: boolean) : ReactElement {
 
-  return <></>
+  const l = Array.from({length: beamsToAdd}, (_, i) => i)
+
+  if (isGrace) {
+
+    return <>
+
+      {
+        l.map((el, index) => {
+          return <line key={index} className="beam-grace" x1={x + 1.1} y1={y - 40 + (el * 1.5)} x2={x + 3.6} y2={y - 40 + (el * 1.5)} />
+        })
+      }
+
+    </>
+
+  } else {
+
+    return <>
+
+      {
+        l.map((el, index) => {
+          return <line key={index} className="beam" x1={x + 1.65} y1={y - 42 + (el * 2.4)} x2={x + 5.65} y2={y - 42 + (el * 2.4)} />
+        })
+      }
+
+    </>
+  }
 
 }
 
@@ -177,15 +265,13 @@ function beamByTimeHelper(element: Element, currentRhythmNumber: RhythmNumber, l
 
         }
 
-
     }
 
   } else {
     // If this note has more beams than the last, just draw the full beams. Any needed stubs or flags will be taken care of later
-    const fullBeamsCode : ReactElement = fullBeams(lastLocation[0], newX, newY, beamsOfCurrent, isGrace)
+    const fullBeamsCode : ReactElement = fullBeams(lastLocation[0], newX, newY, beamsOfPrevious, isGrace)
 
     return [fullBeamsCode, 3]
-
   }
 
 }
@@ -216,7 +302,7 @@ function beamByTime(element: Element, lastLocation: [number, number], lastRhythm
   }
 
   const [currentRhythmNumber, currentDots] = element.duration
-  const [previousRhythmNumber, previousDots] = lastRhythm
+  const [lastRhythmNumber, previousDots] = lastRhythm
 
   // Check to see if the current note and previous note were in the same time group. If so, beam. If not, maybe beam, more checks are needed
   const indexOfLast = findElementInKey(timeKey, Math.floor(lastStart))
@@ -224,7 +310,7 @@ function beamByTime(element: Element, lastLocation: [number, number], lastRhythm
 
   if (indexOfLast === indexOfCurrent) {
     // If they're in the same group, beam
-    return beamByTimeHelper(element, currentRhythmNumber, lastLocation, previousRhythmNumber, lastLastRhythm, lastStart, lastBeamed, isGrace)
+    return beamByTimeHelper(element, currentRhythmNumber, lastLocation, lastRhythmNumber, lastLastRhythm, lastStart, lastBeamed, isGrace)
 
   } else {
     // If they're not in the same group, beam if the previous element went PAST the exact start of the current beat. e.g. last start was 2.9, current start is 3.1, not exactly 3.0, so beam
@@ -233,12 +319,25 @@ function beamByTime(element: Element, lastLocation: [number, number], lastRhythm
     const difference = element.start - wholeNumber
 
     if (difference > 0 ) {
-      return beamByTimeHelper(element, currentRhythmNumber, lastLocation, previousRhythmNumber, lastLastRhythm, lastStart, lastBeamed, isGrace)
+      return beamByTimeHelper(element, currentRhythmNumber, lastLocation, lastRhythmNumber, lastLastRhythm, lastStart, lastBeamed, isGrace)
     }
 
-    //TODO
-    // No beam, instead check for a flag
+    // No beam, instead check for a flag or ending stub
+    const beamsOfPrevious = numberOfBeams[lastRhythmNumber]
 
+    switch (lastBeamed) {
+
+      case 3:
+
+        const stub : ReactElement = endingStubs(oldX, oldY, beamsOfPrevious, isGrace)
+        return [stub, 0]
+
+      case 0:
+
+        const flag : ReactElement = drawFlags(oldX, oldY, beamsOfPrevious, isGrace)
+        return [flag, 0]
+
+    }
 
     return [<></>, 0]
 
@@ -320,23 +419,42 @@ function beamHelper(element: Element, lastLocation: [number, number], lastRhythm
 
   </>
 
+  // Beam
   let beamCode : ReactElement = <></>
   let newLastBeamed : 0 | 1 | 2 | 3 = 0
 
+  // Only need to do something if the last note was really a note, and was an 8th note or shorter. If the last note wasn't a note or was a quarter note or longer, there's nothing to do
   if (isRhythmNumberNumber(lastRhythm)) {
 
     const [lastRhythmNumber, lastDots] = lastRhythm
 
-    // Only need to beam if the last note was an 8th note or shorter, and the current note is an 8th note or shorter
-    if ([8,16,32,64].includes(lastRhythmNumber) && [8,16,32,64].includes(beatNumber)) {
+    if ([8,16,32,64].includes(lastRhythmNumber)) {
 
-      [beamCode, newLastBeamed] = beamByTime(element, lastLocation, lastRhythm, lastLastRhythm, lastStart, timeKey, lastBeamed, isGrace)
+      if ([8,16,32,64].includes(beatNumber)) {
+
+        // if this note is also an 8th or shorter, beam
+        [beamCode, newLastBeamed] = beamByTime(element, lastLocation, lastRhythm, lastLastRhythm, lastStart, timeKey, lastBeamed, isGrace)
+
+      } else {
+
+        // If this note is a quarter or longer, check if end stubs or flags are needed on the previous note
+
+        const beamsOfPrevious = numberOfBeams[lastRhythmNumber]
+        switch (lastBeamed) {
+
+          case 3:
+
+            beamCode = endingStubs(oldX, oldY, beamsOfPrevious, isGrace)
+            break;
+          case 0:
+            beamCode = drawFlags(oldX, oldY, beamsOfPrevious, isGrace)
+            break;
+        }
+
+      }
 
     }
-
   }
-
-  // TODO if this note is a quarter note or longer, check end flags and stubs
 
   const result : ReactElement = <>
     {stem}
@@ -474,16 +592,12 @@ RETURNS code
 */
 function beamNote(element: Element, lastLocation: [number, number], lastRhythm: Rhythm, lastLastRhythm: Rhythm, lastStart: number, timeKey: number[][], lastBeamed: 0 | 1 | 2 | 3, isGrace: boolean) : [ReactElement, 0 | 1 | 2 | 3] {
 
-  let code : ReactElement = <></>
-  let newLastBeamed : 0 | 1 | 2 | 3 = 0
-
   const noteHead = element.noteInfo
 
   switch (noteHead.kind) {
     case "singleNote":
 
-      [code, newLastBeamed] = beamHelper(element, lastLocation, lastRhythm, lastLastRhythm, lastStart, timeKey, lastBeamed, isGrace, noteHead.note.string)
-      break;
+      return beamHelper(element, lastLocation, lastRhythm, lastLastRhythm, lastStart, timeKey, lastBeamed, isGrace, noteHead.note.string)
 
     case "groupNote":
 
@@ -497,9 +611,7 @@ function beamNote(element: Element, lastLocation: [number, number], lastRhythm: 
         }
       }
 
-      [code, newLastBeamed] = beamHelper(element, lastLocation, lastRhythm, lastLastRhythm, lastStart, timeKey, lastBeamed, isGrace, groupString)
-      break;
-
+      return beamHelper(element, lastLocation, lastRhythm, lastLastRhythm, lastStart, timeKey, lastBeamed, isGrace, groupString)
 
     case "tupletNote":
 
@@ -511,9 +623,8 @@ function beamNote(element: Element, lastLocation: [number, number], lastRhythm: 
       // Draw the tuplet bracket
       const tupletBracketCode : ReactElement = drawTupletBracket(notes)
 
-
       // Beam each note within the tuplet individually
-      code = <>
+      const code : ReactElement = <>
         {tupletBracketCode}
         {
           notes.map((n, index) => {
@@ -534,16 +645,14 @@ function beamNote(element: Element, lastLocation: [number, number], lastRhythm: 
         }
       </>
 
-
-      break;
-
-    default:
-
-    // TODO if not a note, do the end checks. Add grace curve if needed, check beam flags and stubs
-
+      return [code, lastBeamed]
   }
 
-  return [code, newLastBeamed]
+  // TODO if not a note, do the end checks. Add grace curve if needed, check beam flags and stubs
+
+  return [<></>, 0]
+
+
 
 }
 
@@ -621,8 +730,11 @@ export function beam(elements: Element[], lastLocation: [number, number], lastRh
 
         lastBeamed = newLastBeamed
         lastLastRhythm = lastRhythm
-        lastRhythm = el.duration
         lastStart = el.start
+
+        // If this note wasn't an actual note, set lastRhythn to be "norhythm". This is to avoid rests being beamed accidentally
+        const nr : Rhythm = "norhythm"
+        lastRhythm = ["singleNote", "groupNote", "tupletNote"].includes(el.noteInfo.kind) ? el.duration : nr
 
         // for the location, check if it's a tuplet note. If so, the last location is the location of the tuplet's final note
         if (el.noteInfo.kind === "tupletNote") {
@@ -678,12 +790,11 @@ export function beamGraceNotes(elements: Element[], timeSignature: [number, Rhyt
             const [sx,sy] = el.graceNotes[0].location
 
             graceSlash = <>
-              <line className="grace-slash" x1={sx - 0.7} y1={sy - 33} x2={sx + 3.3} y2={sy - 37.4} />
+              <line className="grace-slash" x1={sx - 0.7} y1={sy - 33} x2={sx + 3.4} y2={sy - 37.3} />
             </>
           }
 
         }
-
 
         return <Fragment key={index}>
           {code}
