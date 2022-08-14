@@ -683,7 +683,7 @@ function beamNote(element: Element, lastLocation: [number, number], lastRhythm: 
   const y2 = newY - 44
 
   if (isGrace) {
-    graceCurve = <path className="grace-curve" d={`M ${x1} ${y1} C ${x1 + ((x2 - x1) * 0.13043478)} ${y1 - 2.5}, ${x1 + ((x2 - x1) * 0.63043478)} ${y1 - 3}, ${x2} ${y2}`} />
+    graceCurve = <path className="grace-curve" d={`M ${x1} ${y1} C ${x1 + ((x2 - x1) * 0.13043478)} ${y1 - 2.5}, ${x1 + ((x2 - x1) * 0.63043478)} ${y1 - 3}, ${x2} ${y2}`} /> 
   }
 
   let beamCode: ReactElement = <></>

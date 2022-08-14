@@ -14,7 +14,7 @@ function Preview({ input }) {
 
     // if the return type is a string, then it's an error
     if (typeof result === "string") {
-      setError(result) 
+      setError(result)
     } else {
       setSVG(result)
     }

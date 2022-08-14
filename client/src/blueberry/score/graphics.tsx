@@ -4,45 +4,7 @@ import { Fragment, ReactElement } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
 import { beam, beamGraceNotes } from "./beams"
-
-
-// Property list that will be used and updated throughout
-let propertyList : PropertyList = {
-  slurStart: [[0.0,0.0], false, false],
-  muteStart: [[0.0,0.0], false],
-  tieStart: {
-    s1: [[0.0,0.0], 0.0, false, false],
-    s2: [[0.0,0.0], 0.0, false, false],
-    s3: [[0.0,0.0], 0.0, false, false],
-    s4: [[0.0,0.0], 0.0, false, false],
-    s5: [[0.0,0.0], 0.0, false, false],
-    s6: [[0.0,0.0], 0.0, false, false]
-  },
-  slideStart: {
-    s1: [[0.0,0.0], 0.0, false, false],
-    s2: [[0.0,0.0], 0.0, false, false],
-    s3: [[0.0,0.0], 0.0, false, false],
-    s4: [[0.0,0.0], 0.0, false, false],
-    s5: [[0.0,0.0], 0.0, false, false],
-    s6: [[0.0,0.0], 0.0, false, false]
-  },
-  slideStubs: {
-    s1: [[0.0,0.0], 0.0, false, false],
-    s2: [[0.0,0.0], 0.0, false, false],
-    s3: [[0.0,0.0], 0.0, false, false],
-    s4: [[0.0,0.0], 0.0, false, false],
-    s5: [[0.0,0.0], 0.0, false, false],
-    s6: [[0.0,0.0], 0.0, false, false]
-  },
-  hammerStart: {
-    s1: [[0.0,0.0], 0.0, false, false],
-    s2: [[0.0,0.0], 0.0, false, false],
-    s3: [[0.0,0.0], 0.0, false, false],
-    s4: [[0.0,0.0], 0.0, false, false],
-    s5: [[0.0,0.0], 0.0, false, false],
-    s6: [[0.0,0.0], 0.0, false, false]
-  }
-}
+import { drawProperties } from "./properties"
 
 
 
@@ -835,20 +797,21 @@ function showLine(line: Line) : [Line, ReactElement] {
 /* Graphics for one page
 1. page: the page being shown
 2. optionsR: optionsRecord to display, if needed
+3. propertyList: used for keeping track of multiline properties
 RETURNS the updated page, and the svg code
 */
-function showPage(page: Page, optionsR: OptionsRecord) : [Page, ReactElement] {
+function showPage(page: Page, optionsR: OptionsRecord, propertyList: PropertyList) : [Page, ReactElement, PropertyList] {
 
   const lines : Line[] = page.lines
   const pageNumber: number = page.pageNumber
 
   const updatedLines : Line[] = []
 
-  let result : ReactElement;
+  let linesCode : ReactElement;
 
   if (pageNumber === 1) {
 
-    result = <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+    linesCode = <>
       {defs}
       <style>{style}</style>
 
@@ -867,10 +830,10 @@ function showPage(page: Page, optionsR: OptionsRecord) : [Page, ReactElement] {
         </Fragment>
       })}
 
-    </svg>
+    </>
   } else {
 
-    result = <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+    linesCode = <>
       {defs}
       <style>{style}</style>
       {lines.map((line, index) => {
@@ -882,7 +845,7 @@ function showPage(page: Page, optionsR: OptionsRecord) : [Page, ReactElement] {
           {code}
         </Fragment>
       })}
-    </svg>
+    </>
 
   }
 
@@ -891,7 +854,16 @@ function showPage(page: Page, optionsR: OptionsRecord) : [Page, ReactElement] {
     lines: updatedLines
   }
 
-  return [newPage, result]
+  let propertiesCode : ReactElement = <></>
+  let newPropertyList : PropertyList
+  [propertiesCode, newPropertyList] = drawProperties(newPage, propertyList)
+
+  const result = <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+    {linesCode}
+    {propertiesCode}
+  </svg>
+
+  return [newPage, result, newPropertyList]
 
 
 }
@@ -906,14 +878,53 @@ RETURNS the updated pages, and all the svgs
 */
 export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement] {
 
+  // Property list that will be used and updated throughout
+  let propertyList : PropertyList = {
+    slurStart: [[0.0,0.0], false, false],
+    muteStart: [[0.0,0.0], false],
+    tieStart: {
+      s1: [[0.0,0.0], 0.0, false, false],
+      s2: [[0.0,0.0], 0.0, false, false],
+      s3: [[0.0,0.0], 0.0, false, false],
+      s4: [[0.0,0.0], 0.0, false, false],
+      s5: [[0.0,0.0], 0.0, false, false],
+      s6: [[0.0,0.0], 0.0, false, false]
+    },
+    slideStart: {
+      s1: [[0.0,0.0], 0.0, false, false],
+      s2: [[0.0,0.0], 0.0, false, false],
+      s3: [[0.0,0.0], 0.0, false, false],
+      s4: [[0.0,0.0], 0.0, false, false],
+      s5: [[0.0,0.0], 0.0, false, false],
+      s6: [[0.0,0.0], 0.0, false, false]
+    },
+    slideStubs: {
+      s1: [[0.0,0.0], 0.0, false, false],
+      s2: [[0.0,0.0], 0.0, false, false],
+      s3: [[0.0,0.0], 0.0, false, false],
+      s4: [[0.0,0.0], 0.0, false, false],
+      s5: [[0.0,0.0], 0.0, false, false],
+      s6: [[0.0,0.0], 0.0, false, false]
+    },
+    hammerStart: {
+      s1: [[0.0,0.0], 0.0, false, false],
+      s2: [[0.0,0.0], 0.0, false, false],
+      s3: [[0.0,0.0], 0.0, false, false],
+      s4: [[0.0,0.0], 0.0, false, false],
+      s5: [[0.0,0.0], 0.0, false, false],
+      s6: [[0.0,0.0], 0.0, false, false]
+    }
+  }
+
   let updatedPages : Page[] = []
 
   const result = <Fragment>
 
     {pages.map((page, index) => {
 
-      const [newPage, code] = showPage(page, optionsR)
+      const [newPage, code, newPropertyList] = showPage(page, optionsR, propertyList)
       updatedPages.push(newPage)
+      propertyList = newPropertyList
 
       return <Fragment key={index}>
         {code}

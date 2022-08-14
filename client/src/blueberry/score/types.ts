@@ -256,7 +256,7 @@ export type Page = {
 }
 
 export type PropertyList = {
-  // (x,y),fret,grace note,valid
+  // (x,y),grace note,valid
   slurStart: [[number, number], boolean, boolean],
   // (x,y),valid
   muteStart: [[number, number], boolean],

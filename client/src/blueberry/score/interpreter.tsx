@@ -8,7 +8,7 @@ import { show } from "./graphics"
 2. elements: measures, and possible key/capo/time change options within
 */
 export default function interpret(options: ScoreOption[], elements: Expr[]) {
-
+ 
   // Default options
   const defaultOptions : OptionsRecord = {
     time: [4,4],

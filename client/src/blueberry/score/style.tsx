@@ -130,4 +130,14 @@ path.fancy-line-curl {
   fill: transparent;
 }
 
+.slur {
+  stroke-width: 0.7px;
+  fill: transparent;
+}
+
+.slur-grace {
+  stroke-width: 0.5px;
+  fill: transparent;
+}
+
 `
