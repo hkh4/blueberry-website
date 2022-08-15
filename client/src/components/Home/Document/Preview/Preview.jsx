@@ -5,8 +5,6 @@ function Preview({
   input,
   svg,
   setSVG,
-  numberOfPages,
-  setNumberOfPages,
   error,
   setError,
   previewRef
@@ -17,19 +15,17 @@ function Preview({
   // When the input changes, call blueberry to parse
   useEffect(() => {
 
-    const [result, nPages] = blueberry("score", input)
+    const result = blueberry("score", input)
 
     // if the return type is a string, then it's an error
     if (typeof result === "string") {
       setError(result)
-      setNumberOfPages(0)
     } else {
       setError("")
       setSVG(result)
-      setNumberOfPages(nPages)
     }
 
-  }, [input, setError, setNumberOfPages, setSVG])
+  }, [input, setError, setSVG])
 
   return (
     <div id="preview" ref={previewRef}>

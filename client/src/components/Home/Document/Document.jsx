@@ -8,7 +8,6 @@ function Document() {
   // ***************** State
   const [input, setInput] = useState("")
   const [svg, setSVG] = useState(<svg></svg>)
-  const [numberOfPages, setNumberOfPages] = useState(0)
   const [error, setError] = useState("")
 
   // ***************** Refs
@@ -20,8 +19,6 @@ function Document() {
       <Editor
         setInput={setInput}
         svg={svg}
-        numberOfPages={numberOfPages}
-        error={error}
         previewRef={previewRef}
       />
 
@@ -29,8 +26,6 @@ function Document() {
         input={input}
         svg={svg}
         setSVG={setSVG}
-        numberOfPages={numberOfPages}
-        setNumberOfPages={setNumberOfPages}
         error={error}
         setError={setError}
         previewRef={previewRef}

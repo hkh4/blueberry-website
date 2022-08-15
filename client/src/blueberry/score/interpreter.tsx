@@ -33,9 +33,9 @@ export default function interpret(options: ScoreOption[], elements: Expr[]) {
   const pages = dividePages(lines)
 
   // Showtime!
-  const [newPages, resultSVG, numberOfPages] = show(pages, optionsR)
+  const [newPages, resultSVG] = show(pages, optionsR)
 
 
-  return [resultSVG, numberOfPages]
+  return resultSVG
 
 }

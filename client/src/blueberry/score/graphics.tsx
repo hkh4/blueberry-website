@@ -874,9 +874,9 @@ function showPage(page: Page, optionsR: OptionsRecord, propertyList: PropertyLis
 /* Graphics driver
 1. pages
 2. optionsRecord: all the starting options info to be displayed
-RETURNS the updated pages, all the svgs, and the number of pages
+RETURNS the updated pages and all the svgs
 */
-export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement, number] {
+export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement] {
 
   // Property list that will be used and updated throughout
   let propertyList : PropertyList = {
@@ -933,9 +933,7 @@ export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactEle
 
   </Fragment>
 
-  const numberOfPages = pages.length
-
-  return [updatedPages, result, numberOfPages]
+  return [updatedPages, result]
 
 
 }

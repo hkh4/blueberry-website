@@ -8,8 +8,6 @@ import jsPDF from "jspdf"
 function Editor({
   setInput,
   svg,
-  numberOfPages,
-  error,
   previewRef
 }) {
 
