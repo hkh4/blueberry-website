@@ -8,7 +8,7 @@ import { show } from "./graphics"
 2. elements: measures, and possible key/capo/time change options within
 */
 export default function interpret(options: ScoreOption[], elements: Expr[]) {
- 
+
   // Default options
   const defaultOptions : OptionsRecord = {
     time: [4,4],
@@ -33,9 +33,9 @@ export default function interpret(options: ScoreOption[], elements: Expr[]) {
   const pages = dividePages(lines)
 
   // Showtime!
-  const [newPages, resultSVG] = show(pages, optionsR)
+  const [newPages, resultSVG, numberOfPages] = show(pages, optionsR)
 
 
-  return resultSVG
+  return [resultSVG, numberOfPages]
 
 }

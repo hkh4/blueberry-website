@@ -24,6 +24,26 @@ function drawEProperties(currentString: number, eProperties: EitherProperty[], p
 
 
 
+
+/* Draw a strumUp
+1. isGrace: whether or not this note is a grace note
+2. x location
+3. y location
+4. mProperties: list of multiProperties attached to this note
+5. bottomString: the lowest string in this element
+6. topString: the highest string in this element
+RETURNS the strumUp code and the updated propertyList
+*/
+function drawStrumUp(isGrace: boolean, x: number, y: number, mProperties: MultiProperty[], bottomString: number, topString: number) : ReactElement {
+
+  return <></>
+
+}
+
+
+
+
+
 /* Draw a slur
 1. isGrace: whether or not this note is a grace note
 2. x location
@@ -132,11 +152,16 @@ function drawMProperties(mProperties: MultiProperty[], propertyList: PropertyLis
 
   let newPropertyList : PropertyList = {...propertyList}
 
+  // Slurs
   const slurResult = drawSlur(isGrace, x, y, mProperties, newPropertyList, measureNumber)
   newPropertyList = slurResult[1]
 
+  // Strum up
+  const strumUpResult = drawStrumUp(isGrace, x, y, mProperties, bottomString, topString)
+
   const code = <>
     {slurResult[0]}
+    {strumUpResult}
   </>
 
   // TODO

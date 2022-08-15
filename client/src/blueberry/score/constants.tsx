@@ -3,7 +3,7 @@ import { Measure, Buffer, Element, Empty, Barline, Pitch, RhythmNumber } from ".
 // ************ CONSTANT VALUES
 
 // ******* Widths
-export const emptyElementWidth = 5.0
+export const emptyElementWidth = 5.0 
 
 export const timeChangeWidth = 10.0
 

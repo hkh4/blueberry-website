@@ -1,44 +1,38 @@
-import React, { useState, useEffect } from "react"
+import React, { useEffect } from "react"
 import blueberry from "./../../../../blueberry/program.tsx"
 
-function Preview({ input }) {
+function Preview({
+  input,
+  svg,
+  setSVG,
+  numberOfPages,
+  setNumberOfPages,
+  error,
+  setError,
+  previewRef
+}) {
 
-  const [svg, setSVG] = useState(<svg></svg>)
-  const [error, setError] = useState("")
+  // ******************* State
 
   // When the input changes, call blueberry to parse
   useEffect(() => {
 
-    setError("")
-    const result = blueberry("score", input)
+    const [result, nPages] = blueberry("score", input)
 
     // if the return type is a string, then it's an error
     if (typeof result === "string") {
       setError(result)
+      setNumberOfPages(0)
     } else {
+      setError("")
       setSVG(result)
+      setNumberOfPages(nPages)
     }
 
-  }, [input])
-
-  // const [svg, setSVG] = useState(<svg viewBox="0 0 200 200"></svg>)
-  //
-  //
-  //
-  // function foo() {
-  //   return <text x="50" y="50">From foo</text>
-  // }
-  //
-  // function test() {
-  //   const res = foo()
-  //   const x = <svg height="100" width="100" viewBox="0 0 200 200">
-  //     {res}
-  //   </svg>
-  //   setSVG(x)
-  // }
+  }, [input, setError, setNumberOfPages, setSVG])
 
   return (
-    <div id="preview">
+    <div id="preview" ref={previewRef}>
       {error && <h3>{error}</h3>}
       {svg}
     </div>

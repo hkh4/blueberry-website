@@ -858,7 +858,7 @@ function showPage(page: Page, optionsR: OptionsRecord, propertyList: PropertyLis
   let newPropertyList : PropertyList
   [propertiesCode, newPropertyList] = drawProperties(newPage, propertyList)
 
-  const result = <svg viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+  const result = <svg id={`p${pageNumber}`} viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
     {linesCode}
     {propertiesCode}
   </svg>
@@ -874,9 +874,9 @@ function showPage(page: Page, optionsR: OptionsRecord, propertyList: PropertyLis
 /* Graphics driver
 1. pages
 2. optionsRecord: all the starting options info to be displayed
-RETURNS the updated pages, and all the svgs
+RETURNS the updated pages, all the svgs, and the number of pages
 */
-export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement] {
+export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement, number] {
 
   // Property list that will be used and updated throughout
   let propertyList : PropertyList = {
@@ -933,7 +933,9 @@ export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactEle
 
   </Fragment>
 
-  return [updatedPages, result]
+  const numberOfPages = pages.length
+
+  return [updatedPages, result, numberOfPages]
 
 
 }
