@@ -140,4 +140,23 @@ path.fancy-line-curl {
   fill: transparent;
 }
 
+.strum {
+  stroke-width: 0.45px;
+  fill: black;
+}
+
+.strum-grace {
+  stroke-width: 0.35px;
+  fill: black;
+}
+
+.pluck {
+  stroke-width: 0.1px;
+  fill: black;
+}
+
+.pluck-grace {
+  stroke-width: 0.1px;
+  fill: black;
+}
 `
