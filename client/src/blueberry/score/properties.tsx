@@ -129,8 +129,36 @@ RETURNS the slide code and the updated propertyList
 */
 function drawSlide(currentString: number, eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
-  // TODO:
-  return [<></>, propertyList]
+  let newPropertyList : PropertyList = {...propertyList}
+
+  // Get the propertyList elements for slides
+  // SlideStart is for drawing a slide from a previous note to this note
+  const slideStart = propertyList.slideStart[`s${currentString}`]
+
+  // SlideStub is for drawing a stub at the end of the LAST line. This needs to be done here because the direction of the stub (up/down) depends on the fret of this current note in relation to the note in the last line that requested a slide
+  const slideStub = propertyList.slideStubs[`s${currentString}`]
+
+  let slideStartCode : ReactElement = <></>
+  let slideStubCode : ReactElement = <></>
+
+  // Check if a slidestart is needed
+  if (slideStart[3]) {
+    // TODO:
+  }
+
+  // Check to see if this note wants a slide
+  const sli = eProperties.includes("sli")
+
+  if (sli) {
+    // TODO:
+  }
+
+  const slideCode : ReactElement = <>
+    {slideStartCode}
+    {slideStubCode}
+  </>
+
+  return [slideCode, newPropertyList]
 
 }
 
@@ -208,7 +236,92 @@ RETURNS the LongPalmMute code and the updated propertyList
 */
 function drawLongPalmMute(isGrace: boolean, x: number, y: number, mProperties: MultiProperty[], propertyList: PropertyList, measureNumber: number) : [ReactElement, PropertyList] {
 
-  //TODO:
+  let newPropertyList : PropertyList = {...propertyList}
+
+  // Check to see if the beginning or end long palm mute properties exist
+  const pl1 = mProperties.includes("pl1")
+  const pl2 = mProperties.includes("pl2")
+
+  if (pl1 && pl2) {
+    // If a note has both a long palm mute start and long palm mute end, throw an error
+    throw new Error(`Error in measure ${measureNumber}. Can't have a long palm mute start and end property on the same note.`)
+  } else if (pl1) {
+
+    // If a note only has a long palm mute start
+    // Check if the muteStart property of the property list is valid. If so, throw an error due to overlapping mutes
+    if (propertyList.muteStart[1]) {
+      throw new Error(`Error in measure ${measureNumber}. Overlapping long palm mutes detected. A long palm mute must be ended before another one is started.`)
+    }
+
+    // Otherwise, update muteStart
+    newPropertyList.muteStart = [[x,y], true]
+
+    return [<></>, newPropertyList]
+
+  } else if (pl2) {
+
+    // If a note only has a long palm mute end
+    // Check to see if there was a slur started
+    if (propertyList.muteStart[1]) {
+
+      // Further decompose into relevant properties
+      let [oldX, oldY] = propertyList.muteStart[0]
+
+      oldX += 8
+      x += 1.6
+      y += 7.8
+
+      // Move the end a little to the left for grace notes
+      if (isGrace) {
+        x -= 0.2
+      }
+
+      // Figure out how many dashed lines are needed
+      const counter = Math.floor((x - oldX) / 6)
+      const counterMap = Array.from(Array(counter).keys())
+      const xAfterDashes = oldX + (counter * 6)
+
+      // Is an additional small line needed at the end?
+      // If there is a space greater than 2, add a small extra line
+      const remainder = x - xAfterDashes
+      let needLine : boolean
+      let extraLength : number
+
+      if (remainder > 2) {
+        needLine = true
+        extraLength = Math.min(4, remainder - 2)
+      } else {
+        needLine = false
+        extraLength = 0
+      }
+
+      // Draw the palm mute
+      let muteCode : ReactElement = <>
+        <text textAnchor="middle" x={`${oldX - 6}`} y={`${oldY + 10}`} className="palm-mute">PM</text>
+        
+        {counterMap.map(i => {
+          return <path className="long-palm-mute" d={`M ${oldX + (i * 6)} ${y} l 4 0`} />
+        })}
+
+        {
+          needLine && <path className="long-palm-mute" d={`M ${xAfterDashes} ${y} l ${extraLength} 0`} />
+        }
+
+        <path className="long-palm-mute" d={`M ${x} ${y} l 0 -3`} />
+        
+      </>
+
+      newPropertyList.muteStart = [[0,0],false]
+
+      return [muteCode, newPropertyList]
+
+    } else {
+      // no long palm mute started, throw error
+      throw new Error(`Error in measure ${measureNumber}. Cannot end a long palm mute without starting one first.`)
+    }
+
+  } 
+
   return [<></>, propertyList]
 
 }
@@ -224,8 +337,65 @@ RETURNS the PalmMute code
 */
 function drawPalmMute(x: number, y: number, mProperties: MultiProperty[]) : ReactElement {
 
-  //TODO:
+  // Check to see if the palm mute property exists
+  const plm = mProperties.includes("plm")
+
+  if (plm) {
+
+    x += 2
+    y += 10
+    return <text textAnchor="middle" x={`${x}`} y={`${y}`} className="palm-mute">PM</text>
+
+  } 
+  
   return <></>
+
+}
+
+
+
+
+
+/* Helper method for pluckDown and pluckUp. Draws one iteration of the curve for regular notes
+1. x location
+2. y location
+3. key for JSX mapping
+RETURNS code for the curve
+*/
+function drawPluckCurve(x: number, y: number, key: number) : ReactElement {
+
+  return <path key={key} className="pluck" d={
+    `M ${x} ${y} 
+    C ${x - 1} ${y - 1}, ${x - 1} ${y - 1.5}, ${x} ${y - 3}
+    C ${x + 1.5} ${y - 4}, ${x + 1.5} ${y - 4.5}, ${x} ${y - 6}
+    C ${x - 0.15} ${y - 6.1}, ${x - 0.4} ${y - 5.85}, ${x - 0.3} ${y - 5.7}
+    C ${x + 0.1} ${y - 5.2}, ${x + 0.1} ${y - 4.8}, ${x - 0.5} ${y - 4}
+    C ${x - 2.3} ${y - 2.3}, ${x - 2.3} ${y - 2.2}, ${x - 0.3} ${y + 0.3}
+    C ${x - 0.15} ${y + 0.4}, ${x + 0.1} ${y + 0.15}, ${x} ${y}`
+  } />
+
+}
+
+
+
+
+/* Helper method for pluckDown and pluckUp. Draws one iteration of the curve for grace notes
+1. x location
+2. y location
+3. key for JSX mapping
+RETURNS code for the curve
+*/
+function drawPluckCurveGrace(x: number, y: number, key: number) : ReactElement {
+
+  return <path key={key} className="pluck" d={
+    `M ${x} ${y} 
+    C ${x - 0.7} ${y - 1}, ${x - 0.7} ${y - 1.5}, ${x} ${y - 3}
+    C ${x + 1.3} ${y - 4}, ${x + 1.3} ${y - 4.5}, ${x} ${y - 6}
+    C ${x - 0.1} ${y - 6.1}, ${x - 0.3} ${y - 5.85}, ${x - 0.2} ${y - 5.7}
+    C ${x + 0.07} ${y - 5.2}, ${x + 0.07} ${y - 4.8}, ${x - 0.3} ${y - 4}
+    C ${x - 1.6} ${y - 2.3}, ${x - 1.6} ${y - 2.2}, ${x - 0.2} ${y + 0.3}
+    C ${x - 0.1} ${y + 0.4}, ${x + 0.07} ${y + 0.15}, ${x} ${y}`
+  } />
 
 }
 
@@ -244,7 +414,68 @@ RETURNS the pluckDown code
 */
 function drawPluckDown(isGrace: boolean, x: number, y: number, mProperties: MultiProperty[], bottomString: number, topString: number) : ReactElement {
 
-  // TODO:
+  // Check to see if the pluck down property exists
+  const pld = mProperties.includes("pld")
+
+  if (pld) {
+
+    // Calculate the height of the pluck based on the number of strings it traverses
+    const height = topString - bottomString + 1
+    const start = bottomString * 6
+
+    let pluckCode : ReactElement = <></>
+
+    if (isGrace) {
+
+      x -= 1.5
+      y = y + 2 - start
+
+      // Draw a curve for each unit of height, aka for each guitar string there is one curve
+      const heightMap = Array.from(Array(height).keys())
+
+      pluckCode = <>
+        {heightMap.map(i => {
+
+          // Calculate the starting position for the curve
+          let newY = y - ((i-1) * 6)
+
+          // Call helper function to draw a curve
+          return drawPluckCurveGrace(x, newY, i)
+        })}
+        {
+          <path className="pluck" d={`M ${x - 0.2} ${y + 6} l 1.5 0 l -1.5 3 l -1.5 -3 l 1.5 0`} />
+        }
+      </>
+
+    } else {
+
+      x -= 2.2
+      y = y + 2 - start
+      let yArrow = y - ((height - 1) * 6) + 0.3
+
+      // Draw a curve for each unit of height, aka for each guitar string there is one curve
+      const heightMap = Array.from(Array(height).keys())
+
+      pluckCode = <>
+        {heightMap.map(i => {
+
+          // Calculate the starting position for the curve
+          let newY = y - ((i-1) * 6)
+
+          // Call helper function to draw a curve
+          return drawPluckCurve(x, newY, i)
+        })}
+        {
+          <path className="pluck" d={`M ${x - 0.2} ${y + 6} l 2 0 l -2 4 l -2 -4 l 2 0`} />
+        }
+      </>
+
+    }
+
+    return pluckCode
+
+  }
+
   return <></>
 
 }
@@ -290,15 +521,8 @@ function drawPluckUp(isGrace: boolean, x: number, y: number, mProperties: MultiP
           // Calculate the starting position for the curve
           let newY = y - ((i-1) * 6)
 
-          return <path key={i} className="pluck" d={
-            `M ${x} ${newY} 
-            C ${x - 0.7} ${newY - 1}, ${x - 0.7} ${newY - 1.5}, ${x} ${newY - 3}
-            C ${x + 1.3} ${newY - 4}, ${x + 1.3} ${newY - 4.5}, ${x} ${newY - 6}
-            C ${x - 0.1} ${newY - 6.1}, ${x - 0.3} ${newY - 5.85}, ${x - 0.2} ${newY - 5.7}
-            C ${x + 0.07} ${newY - 5.2}, ${x + 0.07} ${newY - 4.8}, ${x - 0.3} ${newY - 4}
-            C ${x - 1.6} ${newY - 2.3}, ${x - 1.6} ${newY - 2.2}, ${x - 0.2} ${newY + 0.3}
-            C ${x - 0.1} ${newY + 0.4}, ${x + 0.07} ${newY + 0.15}, ${x} ${newY}`
-          } />
+          // Call helper function to draw a curve
+          return drawPluckCurveGrace(x, newY, i)
         })}
         {
           <path className="pluck" d={`M ${x} ${yArrow} l 1.5 0 l -1.5 -3 l -1.5 3 l 1.5 0`} />
@@ -320,15 +544,8 @@ function drawPluckUp(isGrace: boolean, x: number, y: number, mProperties: MultiP
           // Calculate the starting position for the curve
           let newY = y - ((i-1) * 6)
 
-          return <path key={i} className="pluck" d={
-            `M ${x} ${newY} 
-            C ${x - 1} ${newY - 1}, ${x - 1} ${newY - 1.5}, ${x} ${newY - 3}
-            C ${x + 1.5} ${newY - 4}, ${x + 1.5} ${newY - 4.5}, ${x} ${newY - 6}
-            C ${x - 0.15} ${newY - 6.1}, ${x - 0.4} ${newY - 5.85}, ${x - 0.3} ${newY - 5.7}
-            C ${x + 0.1} ${newY - 5.2}, ${x + 0.1} ${newY - 4.8}, ${x - 0.5} ${newY - 4}
-            C ${x - 2.3} ${newY - 2.3}, ${x - 2.3} ${newY - 2.2}, ${x - 0.3} ${newY + 0.3}
-            C ${x - 0.15} ${newY + 0.4}, ${x + 0.1} ${newY + 0.15}, ${x} ${newY}`
-          } />
+          // Call helper function to draw a curve
+          return drawPluckCurve(x, newY, i)
         })}
         {
           <path className="pluck" d={`M ${x} ${yArrow} l 2 0 l -2 -4 l -2 4 l 2 0`} />
@@ -339,9 +556,9 @@ function drawPluckUp(isGrace: boolean, x: number, y: number, mProperties: MultiP
 
     return pluckCode
 
-  } else {
-    return <></>
-  }
+  } 
+
+  return <></>
 
 }
 
@@ -391,9 +608,9 @@ function drawStrumDown(isGrace: boolean, x: number, y: number, mProperties: Mult
 
     return strumCode
 
-  } else {
-    return <></>
   }
+
+  return <></>
 
 }
 
@@ -444,9 +661,9 @@ function drawStrumUp(isGrace: boolean, x: number, y: number, mProperties: MultiP
 
     return strumCode
 
-  } else {
-    return <></>
-  }
+  } 
+
+  return <></>
 
 }
  
@@ -480,14 +697,12 @@ function drawSlur(isGrace: boolean, x: number, y: number, mProperties: MultiProp
     // Check if the slur start in the property list is valid. If so, throw an error due to overlapping slurs
     if (propertyList.slurStart[2]) {
       throw new Error(`Error in measure ${measureNumber}. Overlapping slurs detected. A slur must be ended before another one can start`)
-    } else {
+    } 
 
-      // Update the slur start
-      newPropertyList.slurStart = [[x,y], isGrace, true]
+    // Update the slur start
+    newPropertyList.slurStart = [[x,y], isGrace, true]
 
-      return [<></>, newPropertyList]
-
-    }
+    return [<></>, newPropertyList]
 
   } else if (sle) {
 
@@ -535,9 +750,7 @@ function drawSlur(isGrace: boolean, x: number, y: number, mProperties: MultiProp
       throw new Error(`Error in measure ${measureNumber}. Cannot end a slur without starting one first`)
     }
 
-  } else {
-
-  }
+  } 
 
   return [<></>, propertyList]
 

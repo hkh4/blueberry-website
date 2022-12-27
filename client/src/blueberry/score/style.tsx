@@ -159,4 +159,14 @@ path.fancy-line-curl {
   stroke-width: 0.1px;
   fill: black;
 }
+
+.palm-mute {
+  font-size: 7px;
+  font-weight: bold;
+}
+
+.long-palm-mute {
+  stroke-width: 0.5px;
+  fill: transparent;
+}
 `

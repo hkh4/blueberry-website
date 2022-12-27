@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 
 import "./App.scss"
 
@@ -15,29 +15,19 @@ function App() {
   return (
     <Suspense fallback={<Loading />}>
       <Router>
-        <Switch>
+        <Routes>
 
-          <Route path="/401">
-            <Error401 />
-          </Route>
+          <Route path="/401" element={<Error401 />} />
 
-          <Route path="/403">
-            <Error403 />
-          </Route>
+          <Route path="/403" element={<Error403 />} />
 
-          <Route path="/404">
-            <Error404 />
-          </Route>
+          <Route path="/404" element={<Error404 />} />
 
-          <Route path="/500">
-            <Error500 />
-          </Route>
+          <Route path="/500" element={<Error500 />} />
 
-          <Route path="/">
-            <Home />
-          </Route>
+          <Route path="*" element={<Home />} />
 
-        </Switch>
+        </Routes>
       </Router>
     </Suspense>
   );
