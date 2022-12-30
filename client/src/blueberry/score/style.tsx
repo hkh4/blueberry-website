@@ -169,4 +169,9 @@ path.fancy-line-curl {
   stroke-width: 0.5px;
   fill: transparent;
 }
+
+.slide {
+  stroke-width: 0.3px;
+  fill: transparent;
+}
 `

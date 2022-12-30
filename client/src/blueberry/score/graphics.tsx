@@ -4,7 +4,7 @@ import { Fragment, ReactElement } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
 import { beam, beamGraceNotes } from "./beams"
-import { drawProperties } from "./properties"
+import { drawProperties, checkEndings } from "./properties"
 
 
 
@@ -743,7 +743,7 @@ function showLine(line: Line) : [Line, ReactElement] {
     <text x={staffX - 5} y={staffY - 40} textAnchor="start" className="measure-number">{firstMeasureNumber}</text>
   </>
 
-  let newX;
+  let newX : number;
 
   // Update the x location
   if (line.lineNumber === 1) {
@@ -796,14 +796,17 @@ function showLine(line: Line) : [Line, ReactElement] {
 
 /* Graphics for one page
 1. page: the page being shown
-2. optionsR: optionsRecord to display, if needed
-3. propertyList: used for keeping track of multiline properties
+2. nextPage: either the next page, or "none" if this is the last page. Needed to check page property endings
+3. optionsR: optionsRecord to display, if needed
+4. propertyList: used for keeping track of multiline properties
 RETURNS the updated page, and the svg code
 */
-function showPage(page: Page, optionsR: OptionsRecord, propertyList: PropertyList) : [Page, ReactElement, PropertyList] {
+function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, propertyList: PropertyList) : [Page, ReactElement, PropertyList] {
 
   const lines : Line[] = page.lines
   const pageNumber: number = page.pageNumber
+
+  let newPropertyList : PropertyList = {...propertyList}
 
   const updatedLines : Line[] = []
 
@@ -854,13 +857,22 @@ function showPage(page: Page, optionsR: OptionsRecord, propertyList: PropertyLis
     lines: updatedLines
   }
 
+  // Draw properties
   let propertiesCode : ReactElement = <></>
-  let newPropertyList : PropertyList
   [propertiesCode, newPropertyList] = drawProperties(newPage, propertyList)
+
+  // Check property endings for a page if needed
+  let endingsCode : ReactElement = <></>
+  if (nextPage != "none") {
+    const pageEndings = checkEndings(nextPage, newPropertyList)
+    endingsCode = pageEndings[0]
+    newPropertyList = pageEndings[1]
+  }
 
   const result = <svg id={`p${pageNumber}`} viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
     {linesCode}
     {propertiesCode}
+    {endingsCode}
   </svg>
 
   return [newPage, result, newPropertyList]
@@ -922,7 +934,8 @@ export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactEle
 
     {pages.map((page, index) => {
 
-      const [newPage, code, newPropertyList] = showPage(page, optionsR, propertyList)
+      const nextPage: Page | "none" = index < pages.length - 1 ? pages[index + 1] : "none"
+      const [newPage, code, newPropertyList] = showPage(page, nextPage, optionsR, propertyList)
       updatedPages.push(newPage)
       propertyList = newPropertyList
 
