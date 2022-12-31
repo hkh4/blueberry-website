@@ -859,12 +859,14 @@ function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, 
 
   // Draw properties
   let propertiesCode : ReactElement = <></>
-  [propertiesCode, newPropertyList] = drawProperties(newPage, propertyList)
+  const propertiesResult = drawProperties(newPage, propertyList)
+  propertiesCode = propertiesResult[0]
+  newPropertyList = propertiesResult[1]
 
   // Check property endings for a page if needed
   let endingsCode : ReactElement = <></>
   if (nextPage != "none") {
-    const pageEndings = checkEndings(nextPage, newPropertyList)
+    const pageEndings = checkEndings(nextPage.lines[0], newPropertyList)
     endingsCode = pageEndings[0]
     newPropertyList = pageEndings[1]
   }

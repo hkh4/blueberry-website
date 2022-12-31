@@ -147,7 +147,7 @@ function calculateFret(guitarString: GuitarString, pitch: Pitch, capo: Ints, tun
 }
 
 
-
+ 
 
 /* Helper for parseSimple and parseComplex. Creates and returns a SingleNote
 1. note: the note being parsed. Either a singlesimple or a singlecomplex

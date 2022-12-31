@@ -131,12 +131,15 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
 
   let newPropertyList : PropertyList = {...propertyList}
 
+  // Create the string used to access the property list
+  const s = `s${currentString}`
+
   // Get the propertyList elements for slides
   // SlideStart is for drawing a slide from a previous note to this note
-  const slideStart = propertyList.slideStart[`s${currentString}`]
+  const slideStart = propertyList.slideStart[s]
 
   // SlideStub is for drawing a stub at the end of the LAST line. This needs to be done here because the direction of the stub (up/down) depends on the fret of this current note in relation to the note in the last line that requested a slide
-  const slideStub = propertyList.slideStubs[`s${currentString}`]
+  const slideStub = propertyList.slideStubs[s]
 
   let slideStartCode : ReactElement = <></>
   let slideStubCode : ReactElement = <></>
@@ -150,37 +153,102 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
     // Figure out which direction the slide should go
     const direction : "up" | "down" = oldFret <= fret ? "up" : "down"
 
-    // Draw based on direction
+    // Set default x coordinates, which are the same for up and down slides
+    let dx1 = oldX + 3.6
+    let dx2 = x - 0.8
+    let dy1;
+    let dy2;
+
+    // Set y coordinates, and tweak x and y coordinates, based on direction, grace notes, frets
     if (direction == "up") {
       
-      // Set default starting and ending coordinates based on a slide where neither are grace notes
-      let dx1 = oldX + 3.6
-      let dy1 = oldY - 0.7
-      let dx2 = x - 0.8
-      let dy2 = yCoord - 3.8
+      // Set default starting and ending coordinates 
+      dy1 = oldY - 0.7
+      dy2 = yCoord - 3.8
       
-      // TODO:
-      // Check the following code and then tweak based on grace notes and fret >= 10
+      // Tweak the starting coordinates based on whether one of the notes is a grace note, or if a fret is >=10
+      if (oldGrace) {
+        dx1 -= 0.8
+        dy1 -= 0.5
+      }
 
-      slideStartCode = <path className="slide" d={`M ${dx1} ${dy1} L ${dx2} ${dy2}`} />
+      if (isGrace) {
+        dx2 += 0.1
+        dy2 += 0.4
+      }
 
-      newPropertyList.slideStart[`s${currentString}`] = [[0, 0], 0, false, false]
+      if (oldFret >= 10) {
+        dx1 += 1.3
+      }
+
+      if (fret >= 10) {
+        dx2 -= 1.1
+      }
+
+    } else {
+
+      // If direction is "down"
+      // Same process as above, but slides go downwards instead of up
+
+      // Set default starting and ending coordinates
+      dy1 = oldY - 3.8
+      dy2 = yCoord - 0.8 
+
+      // Tweak the starting coordinates based on whether one of the notes is a grace note, or if a fret is >=10
+      if (oldGrace) {
+        dx1 -= 0.8
+        dy1 += 0.5
+      }
+
+      if (isGrace) {
+        dx2 += 0.1
+        dy2 -= 0.4
+      }
+
+      if (oldFret >= 10) {
+        dx1 += 0.7
+      }
+
+      if (fret >= 10) {
+        dx2 -= 1.1
+      }
 
     }
 
+    // Draw the slide
+    slideStartCode = <path className="slide" d={`M ${dx1} ${dy1} L ${dx2} ${dy2}`} />
+
+    // Reset slide start 
+    newPropertyList.slideStart[s] = [[0, 0], 0, false, false]
+
+    // Draw a slide stub if needed
     if (slideStub[3]) {
 
-      // TODO:
+      // NOTE that a slidestub should ONLY exist if a slidestart also exists, and properties should match
+
+      // Decompose variables
+      const [stubX, stubY] = slideStub[0]
+
+      // Set coordinates and tweak if necessary. Instead of recalculating everything, do some math to remove oldX and oldY from above and replace with the new values
+      dx1 = dx1 - oldX + stubX 
+      dy1 = dy1 - oldY + stubY
+      dx2 = dx1 + 12
+      dy2 = dy2 - yCoord + stubY
+
+      slideStubCode = <path className="slide" d={`M ${dx1} ${dy1} L ${dx2} ${dy2}`} />
+
+      // Reset slide stub
+      newPropertyList.slideStubs[s] = [[0, 0], 0, false, false]
 
     }
-  }
+  } 
 
   // Check to see if this note wants a slide
   const sli = eProperties.includes("sli")
 
   if (sli) {
     // If a slide is on this note, update the property list
-    newPropertyList.slideStart[`s${currentString}`] = [[x, yCoord], fret, isGrace, true]
+    newPropertyList.slideStart[s] = [[x, yCoord], fret, isGrace, true]
   }
 
   const slideCode : ReactElement = <>
@@ -1091,11 +1159,11 @@ function drawPropertiesMeasure(elements: Element[], propertyList: PropertyList, 
 
 
 /* Check and draw any needed endings for ties
-1. nextLP: either the next Line or the next Page, depending on if it's checking line or page endings
+1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS tie ending code, and the updated property list
 */
-function checkEndTie(nextLP: Line | Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function checkEndTie(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
 
@@ -1108,11 +1176,11 @@ function checkEndTie(nextLP: Line | Page, propertyList: PropertyList) : [ReactEl
 
 
 /* Check and draw any needed endings for slurs
-1. nextLP: either the next Line or the next Page, depending on if it's checking line or page endings
+1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS slur ending code, and the updated property list
 */
-function checkEndSlur(nextLP: Line | Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function checkEndSlur(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
 
@@ -1125,11 +1193,11 @@ function checkEndSlur(nextLP: Line | Page, propertyList: PropertyList) : [ReactE
 
 
 /* Check and draw any needed endings for mutes
-1. nextLP: either the next Line or the next Page, depending on if it's checking line or page endings
+1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS mute ending code, and the updated property list
 */
-function checkEndMute(nextLP: Line | Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function checkEndMute(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
 
@@ -1142,11 +1210,11 @@ function checkEndMute(nextLP: Line | Page, propertyList: PropertyList) : [ReactE
 
 
 /* Check and draw any needed endings for hammers
-1. nextLP: either the next Line or the next Page, depending on if it's checking line or page endings
+1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS hammer ending code, and the updated property list
 */
-function checkEndHammer(nextLP: Line | Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function checkEndHammer(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
 
@@ -1159,16 +1227,43 @@ function checkEndHammer(nextLP: Line | Page, propertyList: PropertyList) : [Reac
 
 
 /* Check and draw any needed endings for slides
-1. nextLP: either the next Line or the next Page, depending on if it's checking line or page endings
+1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS slide ending code, and the updated property list
 */
-function checkEndSlide(nextLP: Line | Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function checkEndSlide(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
 
-  // TODO:
+  // Loop through each item in slideStart
+  for (const s in propertyList.slideStart) {
+
+    // Decompose variables
+    const [[x, y], fret, grace, valid] = propertyList.slideStart[s]
+
+    // The number of the guitar string
+    const currentString = parseInt(s.slice(1))
+
+    // Check if this slidestart is valid
+    if (valid) {
+
+      // Get the start value of the next line, and tweak them a bit
+      let [nextX, nextY] = nextLine.start
+      nextX += 8
+      nextY = nextY + 2.3 - (6 * (currentString - 1))
+
+      // Update the property list
+      newPropertyList.slideStart[s] = [[nextX, nextY], fret, grace, true]
+
+      // Update slide stubs
+      newPropertyList.slideStubs[s] = [[x, y], fret, grace, true]
+
+    }
+
+  }
+
   return [<></>, newPropertyList]
+  
 }
 
 
@@ -1176,32 +1271,32 @@ function checkEndSlide(nextLP: Line | Page, propertyList: PropertyList) : [React
 
 
 /* Check and draw any needed endings for line and page properties, if a property extends to the next line/page
-1. nextLP: either the next Line or the next Page, depending on if it's checking line or page endings
+1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS all endings code, and the updated property list
 */
-export function checkEndings(nextLP: Line | Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+export function checkEndings(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
 
   // Slide endings
-  const slideResult = checkEndSlide(nextLP, newPropertyList)
+  const slideResult = checkEndSlide(nextLine, newPropertyList)
   newPropertyList = slideResult[1]
 
   // Hammer endings
-  const hammerResult = checkEndHammer(nextLP, newPropertyList)
+  const hammerResult = checkEndHammer(nextLine, newPropertyList)
   newPropertyList = hammerResult[1]
 
   // Mute endings
-  const muteResult = checkEndMute(nextLP, newPropertyList)
+  const muteResult = checkEndMute(nextLine, newPropertyList)
   newPropertyList = muteResult[1]
 
   // Slur endings
-  const slurResult = checkEndSlur(nextLP, newPropertyList)
+  const slurResult = checkEndSlur(nextLine, newPropertyList)
   newPropertyList = slurResult[1]
 
   // Tie endings
-  const tieResult = checkEndTie(nextLP, newPropertyList)
+  const tieResult = checkEndTie(nextLine, newPropertyList)
   newPropertyList = tieResult[1]
 
   const code : ReactElement = <>
