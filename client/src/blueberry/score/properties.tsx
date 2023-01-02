@@ -1,5 +1,5 @@
 import { ReactElement, Fragment } from "react"
-import { PropertyList, Page, Line, Measure, Element, Notehead, GuitarString, Pitch, Ints, EitherProperty, MultiProperty, Note } from "./types"
+import { PropertyList, Page, Line, Measure, Element, Notehead, GuitarString, Pitch, Ints, EitherProperty, MultiProperty, Note, PreviousPageCode } from "./types"
 
 
 
@@ -108,8 +108,67 @@ RETURNS the tie code and the updated propertyList
 */
 function drawTie(currentString: number, eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
-  // TODO:
-  return [<></>, propertyList]
+  let newPropertyList : PropertyList = {...propertyList}
+
+  // Create the string used to access the property list
+  const s = `s${currentString}`
+
+  // Get the property list entry for tieStart
+  const tieStart = propertyList.tieStart[s]
+
+  let tieCode : ReactElement = <></>
+
+  // Decompose into variables
+  let [[oldX, oldY], oldFret, oldGrace, valid] = tieStart
+
+  // Check if a tie start is needed
+  if (valid) {
+
+    // Set default coordinates
+    let dx1 = oldX + 3.6
+    let dx2 = x - 0.7
+    let dy = yCoord - 3.5
+    let mid = (dx2 - dx1) * 0.3
+    let yRise = 2.1
+
+    // Tweak coordinates based on whether one of the notes is a grace note, and if either fret is >= 10 
+    if (oldGrace) {
+      dx1 -= 0.8 
+    }
+
+    if (isGrace) {
+      dx2 += 0.2
+    }
+
+    if (oldGrace && isGrace) { 
+      dy += 0.3
+      yRise -= 0.3
+    }
+
+    if (oldFret >= 10) {
+      dx1 += 1.4
+    }
+
+    if (fret >= 10) {
+      dx2 -= 1.7
+    }
+
+    tieCode = <path className="tie" d={`M ${dx1} ${dy} C ${dx1 + mid} ${dy - yRise}, ${dx2 - mid} ${dy - yRise}, ${dx2} ${dy}`} />
+
+    // Reset tie stub
+    newPropertyList.tieStart[s] = [[0, 0], 0, false, false]
+
+  }
+
+  // Check to see if this note wants a tie
+  const tie = eProperties.includes("tie")
+
+  if (tie) {
+    // If a tie is on this note, update the property list
+    newPropertyList.tieStart[s] = [[x, yCoord], fret, isGrace, true]
+  }
+
+  return [tieCode, newPropertyList]
 
 }
 
@@ -125,11 +184,15 @@ function drawTie(currentString: number, eProperties: EitherProperty[], fret: num
 5. yCoord: y location, calculated based on what string this note is on
 6. isGrace: whether this note is a grace note
 7. propertyList: used to keep track of properties that extend past lines or pages
-RETURNS the slide code and the updated propertyList
+8. pageNumber: page number
+9. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the slide code, the updated propertyList, and the updated previousPageCode
 */
-function drawSlide(currentString: number, eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function drawSlide(currentString: number, eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean, propertyList: PropertyList, pageNumber: number, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
+  let slideCode : ReactElement = <></>
 
   // Create the string used to access the property list
   const s = `s${currentString}`
@@ -144,11 +207,11 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
   let slideStartCode : ReactElement = <></>
   let slideStubCode : ReactElement = <></>
 
-  // Check if a slidestart is needed
-  if (slideStart[3]) {
+  // Decompose into variables
+  let [[oldX, oldY], oldFret, oldGrace, valid] = slideStart
 
-    // Decompose into variables
-    let [[oldX, oldY], oldFret, oldGrace, _] = slideStart
+  // Check if a slidestart is needed
+  if (valid) {
 
     // Figure out which direction the slide should go
     const direction : "up" | "down" = oldFret <= fret ? "up" : "down"
@@ -240,6 +303,22 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
       // Reset slide stub
       newPropertyList.slideStubs[s] = [[0, 0], 0, false, false]
 
+      // If the slide stub is supposed to go onto the previous page, return it separately 
+      // Check if the y coordinate of this note is smaller than the slide stub y coordinate
+      if (yCoord < stubY) {
+
+        const p = `p${pageNumber - 1}`
+
+        // See if the previous page code object already has a property for this page in the format p1, p2 etc
+        if (newPreviousPageCode.hasOwnProperty(p)) {
+          newPreviousPageCode[p].push(slideStubCode)
+        } else {
+          newPreviousPageCode[p] = [slideStubCode]
+        }
+
+        return [slideStartCode, newPropertyList, newPreviousPageCode]
+      }
+
     }
   } 
 
@@ -251,12 +330,12 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
     newPropertyList.slideStart[s] = [[x, yCoord], fret, isGrace, true]
   }
 
-  const slideCode : ReactElement = <>
+  slideCode = <>
     {slideStartCode}
     {slideStubCode}
   </>
 
-  return [slideCode, newPropertyList]
+  return [slideCode, newPropertyList, newPreviousPageCode]
 
 }
 
@@ -273,18 +352,22 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
 6. x location
 7. y location
 8. measureNumber for errors
-RETURNS the code and the updated propertyList
+9. pageNumber: page number
+10. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the code, the updated propertyList, and the updated previous page code
 */
-function drawEProperties(currentString: number, eProperties: EitherProperty[], fret: number, propertyList: PropertyList, isGrace: boolean, x: number, y: number, measureNumber: number) : [ReactElement, PropertyList] {
+function drawEProperties(currentString: number, eProperties: EitherProperty[], fret: number, propertyList: PropertyList, isGrace: boolean, x: number, y: number, measureNumber: number, pageNumber: number, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
   
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
   // TODO: this probably needs to be edited
   const yCoord = y + 2.3 - (6 * (currentString - 1))
 
   // Slides
-  const slideResult = drawSlide(currentString, eProperties, fret, x, yCoord, isGrace, propertyList)
+  const slideResult = drawSlide(currentString, eProperties, fret, x, yCoord, isGrace, propertyList, pageNumber, newPreviousPageCode)
   newPropertyList = slideResult[1]
+  newPreviousPageCode = slideResult[2]
 
   // Ties
   const tieResult = drawTie(currentString, eProperties, fret, x, yCoord, isGrace, propertyList)
@@ -316,7 +399,7 @@ function drawEProperties(currentString: number, eProperties: EitherProperty[], f
     {hammerResult[0]}
   </>
 
-  return [code, newPropertyList]
+  return [code, newPropertyList, newPreviousPageCode]
 
 }
 
@@ -919,11 +1002,14 @@ function drawMProperties(mProperties: MultiProperty[], propertyList: PropertyLis
 2. propertyList: used to keep track of properties that extend past lines or pages
 3. isGrace: if this note is a grace note or not
 4. measureNumber for error messages
-RETURNS the code and the updated propertyList
+5. pageNumber: page number
+6. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the code, the updated propertyList, and the updated previous page code
 */
-function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace: boolean, measureNumber: number) : [ReactElement, PropertyList] {
+function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace: boolean, measureNumber: number, pageNumber: number, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
   let mPropertiesCode : ReactElement = <></>
   let ePropertiesCode : ReactElement = <></>
 
@@ -963,10 +1049,11 @@ function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace:
       newPropertyList = mResult[1]
 
       // draw the eProperties
-      const eResult = drawEProperties(currentString, eProperties, fret, newPropertyList, isGrace, currentX, currentY, measureNumber)
+      const eResult = drawEProperties(currentString, eProperties, fret, newPropertyList, isGrace, currentX, currentY, measureNumber, pageNumber, newPreviousPageCode)
 
       ePropertiesCode = eResult[0]
       newPropertyList = eResult[1]
+      newPreviousPageCode = eResult[2]
 
       break;
 
@@ -1000,9 +1087,10 @@ function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace:
             }
 
             // draw the eProperties
-            const eResult = drawEProperties(currentString, eProperties, fret, newPropertyList, isGrace, currentX, currentY, measureNumber)
+            const eResult = drawEProperties(currentString, eProperties, fret, newPropertyList, isGrace, currentX, currentY, measureNumber, pageNumber, newPreviousPageCode)
 
             newPropertyList = eResult[1]
+            newPreviousPageCode = eResult[2]
 
             return <Fragment key={index}>
               {eResult[0]}
@@ -1042,16 +1130,17 @@ function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace:
         {
           notes.map((note, index) => {
 
-            const r = drawPropertiesElement(note, newPropertyList, isGrace, measureNumber)
+            const r = drawPropertiesElement(note, newPropertyList, isGrace, measureNumber, pageNumber, newPreviousPageCode)
 
             newPropertyList = r[1]
+            newPreviousPageCode = r[2]
 
             return r[0]
           })
         }
       </>
 
-      return [allResult, newPropertyList]
+      return [allResult, newPropertyList, newPreviousPageCode]
     }
 
   }
@@ -1061,7 +1150,7 @@ function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace:
   {ePropertiesCode}
   </>
 
-  return [result, newPropertyList]
+  return [result, newPropertyList, newPreviousPageCode]
 
 }
 
@@ -1073,11 +1162,14 @@ function drawPropertiesElement(el: Element, propertyList: PropertyList, isGrace:
 1. els: list of grace notes
 2. propertyList: used to keep track of properties that extend past lines or pages
 3. measureNumber for error messages
-RETURNS the code and the updated propertyList
+4. pageNumber: page number
+5. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the code, the updated propertyList, and the updated previous page code
 */
-function drawPropertiesElementGrace(els: Element[], propertyList: PropertyList, measureNumber: number) : [ReactElement, PropertyList] {
+function drawPropertiesElementGrace(els: Element[], propertyList: PropertyList, measureNumber: number, pageNumber: number, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
 
-  let newPropertyList: PropertyList = {...propertyList}
+  let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
   let graceCode : ReactElement = <></>
 
@@ -1085,7 +1177,7 @@ function drawPropertiesElementGrace(els: Element[], propertyList: PropertyList, 
     {
       els.map((el, index) => {
 
-        [graceCode, newPropertyList] = drawPropertiesElement(el, newPropertyList, true, measureNumber)
+        [graceCode, newPropertyList, newPreviousPageCode] = drawPropertiesElement(el, newPropertyList, true, measureNumber, pageNumber, newPreviousPageCode)
 
         return <Fragment key={index}>
           {graceCode}
@@ -1095,7 +1187,7 @@ function drawPropertiesElementGrace(els: Element[], propertyList: PropertyList, 
     }
   </>
 
-  return [result, newPropertyList]
+  return [result, newPropertyList, newPreviousPageCode]
 
 }
 
@@ -1107,10 +1199,14 @@ function drawPropertiesElementGrace(els: Element[], propertyList: PropertyList, 
 1. elements: the elements of the measure, whose properties will be drawn
 2. propertyList: used to keep track of properties that extend past lines or pages
 3. measureNumber: for errors
+4. pageNumber: page number
+5. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the measure's property code, the updated propertylist, and the updated previous page code
 */
-function drawPropertiesMeasure(elements: Element[], propertyList: PropertyList, measureNumber: number) : [ReactElement, PropertyList] {
+function drawPropertiesMeasure(elements: Element[], propertyList: PropertyList, measureNumber: number, pageNumber: number, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
   let elementCode : ReactElement = <></>
   let elementGraceCode : ReactElement = <></>
@@ -1124,19 +1220,21 @@ function drawPropertiesMeasure(elements: Element[], propertyList: PropertyList, 
 
         // If it's a tupletNote, just recurse on each note within
         if (noteInfo.kind === "tupletNote") {
-          [elementCode, newPropertyList] = drawPropertiesMeasure(noteInfo.notes, newPropertyList, measureNumber)
+          [elementCode, newPropertyList, newPreviousPageCode] = drawPropertiesMeasure(noteInfo.notes, newPropertyList, measureNumber, pageNumber, newPreviousPageCode)
 
         } else {
 
           // Draw the properties of each grace note
-          const result = drawPropertiesElementGrace(el.graceNotes, newPropertyList, measureNumber)
+          const result = drawPropertiesElementGrace(el.graceNotes, newPropertyList, measureNumber, pageNumber, newPreviousPageCode)
           elementGraceCode = result[0]
           newPropertyList = result[1]
+          newPreviousPageCode = result[2]
 
           // Draw the properties of the notes themselves
-          const result2 = drawPropertiesElement(el, newPropertyList, false, measureNumber)
+          const result2 = drawPropertiesElement(el, newPropertyList, false, measureNumber, pageNumber, newPreviousPageCode)
           elementCode = result2[0]
           newPropertyList = result2[1]
+          newPreviousPageCode = result2[2]
 
         }
 
@@ -1150,7 +1248,7 @@ function drawPropertiesMeasure(elements: Element[], propertyList: PropertyList, 
 
   </>
 
-  return [elementsCode, newPropertyList]
+  return [elementsCode, newPropertyList, newPreviousPageCode]
 
 }
 
@@ -1166,9 +1264,42 @@ RETURNS tie ending code, and the updated property list
 function checkEndTie(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let tieCode : ReactElement = <></>
 
-  // TODO:
-  return [<></>, newPropertyList]
+  // Loop through each item in tieStart
+  for (const s in propertyList.tieStart) {
+
+    // Decompose variables
+    let [[x, y], fret, grace, valid] = propertyList.tieStart[s]
+
+    // The number of the guitar string
+    const currentString = parseInt(s.slice(1))
+
+    // Check if this tiestart is valid
+    if (valid) {
+
+      // Draw a stub for the tie
+      x += 3.6
+      y -= 3.5
+      const x2 = x + 12
+      const mid = (x2 - x) * 0.3
+      const yRise = 2.1
+      tieCode = <path className="tie" d={`M ${x} ${y} C ${x + mid} ${y - yRise}, ${x2 - mid} ${y - yRise}, ${x2} ${y}`} />
+
+      // Get the next start valud of the next line
+      let [nextX, nextY] = nextLine.start
+      nextX += 8
+      nextY = nextY + 2.3 - (6 * (currentString - 1))
+
+      // Update the property list
+      newPropertyList.tieStart[s] = [[nextX, nextY], fret, grace, true]
+
+    }
+
+  }
+
+
+  return [tieCode, newPropertyList]
 }
 
 
@@ -1318,11 +1449,15 @@ export function checkEndings(nextLine: Line, propertyList: PropertyList) : [Reac
 /* Draw properties for a line
 1. line: the line whose properties will be drawn
 2. propertyList: used to keep track of properties that extend past lines or pages
+3. pageNumber: page number
+4. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS code for the properties of the line, the updated property list, and the updated previous page code
 */
-function drawPropertiesLine(line: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
+function drawPropertiesLine(line: Line, propertyList: PropertyList, pageNumber: number, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
 
   const measures : Measure[] = line.measures
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
   let measureCode : ReactElement = <></>
 
@@ -1331,7 +1466,7 @@ function drawPropertiesLine(line: Line, propertyList: PropertyList) : [ReactElem
     {
       measures.map((measure, index) => {
 
-        [measureCode, newPropertyList] = drawPropertiesMeasure(measure.elements, newPropertyList, measure.measureNumber)
+        [measureCode, newPropertyList, newPreviousPageCode] = drawPropertiesMeasure(measure.elements, newPropertyList, measure.measureNumber, pageNumber, newPreviousPageCode)
 
         return <Fragment key={index}>
           {measureCode}
@@ -1342,7 +1477,7 @@ function drawPropertiesLine(line: Line, propertyList: PropertyList) : [ReactElem
 
   </>
 
-  return [measuresCode, newPropertyList]
+  return [measuresCode, newPropertyList, newPreviousPageCode]
 
 }
 
@@ -1353,11 +1488,14 @@ function drawPropertiesLine(line: Line, propertyList: PropertyList) : [ReactElem
 /* Driver for drawing properties
 1. page: the page whose properties will all be drawn
 2. propertyList: used to keep track of properties that extend past lines or pages
+3. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the code for the page's properties, the updated property list, and the updated previous page code
 */
-export function drawProperties(page: Page, propertyList: PropertyList) : [ReactElement, PropertyList] {
+export function drawProperties(page: Page, propertyList: PropertyList, previousPageCode: PreviousPageCode) : [ReactElement, PropertyList, PreviousPageCode] {
 
   const lines : Line[] = page.lines
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
   let lineCode : ReactElement = <></>
 
@@ -1366,8 +1504,7 @@ export function drawProperties(page: Page, propertyList: PropertyList) : [ReactE
     {
       lines.map((line, index) => {
 
-        [lineCode, newPropertyList] = drawPropertiesLine(line, newPropertyList)
-
+        [lineCode, newPropertyList, newPreviousPageCode] = drawPropertiesLine(line, newPropertyList, page.pageNumber, newPreviousPageCode)
         {/* Check endings */}
         let lineEndCode : ReactElement = <></>
         if (index < lines.length - 1) {
@@ -1392,7 +1529,7 @@ export function drawProperties(page: Page, propertyList: PropertyList) : [ReactE
     {linesCode}
   </>
 
-  return [result, newPropertyList]
+  return [result, newPropertyList, newPreviousPageCode]
 
 }
 

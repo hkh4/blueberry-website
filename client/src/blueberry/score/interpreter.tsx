@@ -1,13 +1,14 @@
-import { ScoreOption, OptionsRecord, Expr } from "./types"
+import { ScoreOption, OptionsRecord, Expr, PreviousPageCode } from "./types"
 import { evalOptions } from "./options"
 import { evalMeasures, divideLines, dividePages } from "./divide"
 import { show } from "./graphics"
+import { ReactElement } from "react"
 
 /********************* Main Driver
 1. options: options at the beginning of the document
 2. elements: measures, and possible key/capo/time change options within
 */
-export default function interpret(options: ScoreOption[], elements: Expr[]) {
+export default function interpret(options: ScoreOption[], elements: Expr[]) : ReactElement {
 
   // Default options
   const defaultOptions : OptionsRecord = {
@@ -34,7 +35,6 @@ export default function interpret(options: ScoreOption[], elements: Expr[]) {
 
   // Showtime!
   const [newPages, resultSVG] = show(pages, optionsR)
-
 
   return resultSVG
 

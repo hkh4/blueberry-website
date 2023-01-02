@@ -7,7 +7,7 @@ function Document() {
 
   // ***************** State
   const [input, setInput] = useState("")
-  const [svg, setSVG] = useState(<svg></svg>)
+  const [svg, setSVG] = useState([])
   const [error, setError] = useState("")
 
   // ***************** Refs

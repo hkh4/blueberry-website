@@ -174,4 +174,9 @@ path.fancy-line-curl {
   stroke-width: 0.3px;
   fill: transparent;
 }
+
+.tie {
+  stroke-width: 0.6px;
+  fill: transparent;
+}
 `

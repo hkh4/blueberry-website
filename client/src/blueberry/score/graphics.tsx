@@ -1,4 +1,4 @@
-import { Page, PropertyList, OptionsRecord, Line, Measure, Element, SingleNote, GroupNote, TupletNote, Note, NormalGuitarNote, X, Rest, GuitarString, Ints, isRhythmNumberNumber, Rhythm } from "./types"
+import { Page, PropertyList, OptionsRecord, Line, Measure, Element, SingleNote, GroupNote, TupletNote, Note, NormalGuitarNote, X, Rest, GuitarString, Ints, isRhythmNumberNumber, Rhythm, PreviousPageCode } from "./types"
 import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer, emptyElementWidth } from "./constants"
 import { Fragment, ReactElement } from "react"
 import { style } from "./style"
@@ -799,14 +799,16 @@ function showLine(line: Line) : [Line, ReactElement] {
 2. nextPage: either the next page, or "none" if this is the last page. Needed to check page property endings
 3. optionsR: optionsRecord to display, if needed
 4. propertyList: used for keeping track of multiline properties
-RETURNS the updated page, and the svg code
+5. previousPageCode: object that keeps track of code that needs to be inserted into a specific page
+RETURNS the updated page, the svg code, the updated property list, and the updated previous page code object
 */
-function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, propertyList: PropertyList) : [Page, ReactElement, PropertyList] {
+function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, propertyList: PropertyList, previousPageCode: PreviousPageCode) : [Page, ReactElement, PropertyList, PreviousPageCode] {
 
   const lines : Line[] = page.lines
   const pageNumber: number = page.pageNumber
 
   let newPropertyList : PropertyList = {...propertyList}
+  let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
   const updatedLines : Line[] = []
 
@@ -852,16 +854,18 @@ function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, 
 
   }
 
-  const newPage : Page = {
+  const newPage : Page = { 
     ...page,
     lines: updatedLines
   }
 
   // Draw properties
   let propertiesCode : ReactElement = <></>
-  const propertiesResult = drawProperties(newPage, propertyList)
+  const propertiesResult = drawProperties(newPage, propertyList, previousPageCode)
   propertiesCode = propertiesResult[0]
   newPropertyList = propertiesResult[1]
+  newPreviousPageCode = propertiesResult[2]
+
 
   // Check property endings for a page if needed
   let endingsCode : ReactElement = <></>
@@ -871,13 +875,13 @@ function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, 
     newPropertyList = pageEndings[1]
   }
 
-  const result = <svg id={`p${pageNumber}`} viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+  const result = <>
     {linesCode}
     {propertiesCode}
     {endingsCode}
-  </svg>
+  </>
 
-  return [newPage, result, newPropertyList]
+  return [newPage, result, newPropertyList, newPreviousPageCode]
 
 
 }
@@ -888,7 +892,7 @@ function showPage(page: Page, nextPage: Page | "none", optionsR: OptionsRecord, 
 /* Graphics driver
 1. pages
 2. optionsRecord: all the starting options info to be displayed
-RETURNS the updated pages and all the svgs
+RETURNS the updated pages, and the final code
 */
 export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactElement] {
 
@@ -930,26 +934,42 @@ export function show(pages: Page[], optionsR: OptionsRecord) : [Page[], ReactEle
     }
   }
 
+  // Previous page code object that will be updated along the way
+  let previousPageCode : PreviousPageCode = {}
+
   let updatedPages : Page[] = []
+  let result : ReactElement[] = []
 
-  const result = <Fragment>
+  pages.forEach((page, index) => {
 
-    {pages.map((page, index) => {
+    const nextPage: Page | "none" = index < pages.length - 1 ? pages[index + 1] : "none"
+    const [newPage, code, newPropertyList, newPreviousPageCode] = showPage(page, nextPage, optionsR, propertyList, previousPageCode)
+    updatedPages.push(newPage)
+    propertyList = newPropertyList
+    previousPageCode = newPreviousPageCode
+    result.push(code)
 
-      const nextPage: Page | "none" = index < pages.length - 1 ? pages[index + 1] : "none"
-      const [newPage, code, newPropertyList] = showPage(page, nextPage, optionsR, propertyList)
-      updatedPages.push(newPage)
-      propertyList = newPropertyList
+  })
 
-      return <Fragment key={index}>
-        {code}
-      </Fragment>
-    })}
+  // Create the svgs, and add in the previousPageCode
+  let final : ReactElement = <>
+  
+    {
+      result.map((s,i) => {
 
-  </Fragment>
+        const prev : ReactElement[] = previousPageCode?.[`p${i+1}`] ?? []
 
-  return [updatedPages, result]
+        return <svg id={`p${i+1}`} key={i} viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
+          {s}
+          {prev.map((p,j) => <Fragment key={j}>{p}</Fragment>)}
+        </svg>
 
+      })
+    }
+  
+  </>
+
+  return [updatedPages, final]
 
 }
 
