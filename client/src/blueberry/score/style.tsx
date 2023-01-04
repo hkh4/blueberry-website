@@ -175,8 +175,21 @@ path.fancy-line-curl {
   fill: transparent;
 }
 
-.tie {
+.tie, .hammer {
   stroke-width: 0.6px;
+  fill: transparent;
+}
+
+.parens {
+  font-size: 6px;
+}
+
+.parens-grace {
+  font-size: 4.5px;
+}
+
+.harmonic {
+  stroke-width: 0.5px;
   fill: transparent;
 }
 `

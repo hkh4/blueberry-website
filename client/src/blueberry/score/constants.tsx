@@ -35,6 +35,8 @@ export const firstLineX = 70
 
 export const otherLinesX = 50
 
+export const lineEndX = 565
+
 export const firstLineBuffer = 30
 
 export const otherLinesBuffer = 20

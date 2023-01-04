@@ -996,11 +996,6 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
         }
 
       }
-      // if there aren't any grace notes, just don't worry about them :)
-
-      // FIGURE OUT GRACE NOTES FOR A TUPLET TODO
-      // TODO:
-
 
       elements.push(newNote)
 

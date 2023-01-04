@@ -1,10 +1,10 @@
 import { ReactElement, Fragment } from "react"
 import { PropertyList, Page, Line, Measure, Element, Notehead, GuitarString, Pitch, Ints, EitherProperty, MultiProperty, Note, PreviousPageCode } from "./types"
-
-
+import { lineEndX } from "./constants"
 
 
 /* Draw hammers
+NOTE: at least for now, the logic for a hammer is identical to a tie
 1. currentString: which guitar string this note is on
 2. eProperties is the list of EitherProperties
 3. fret is the fret of the current note (-1 if an X)
@@ -16,8 +16,67 @@ RETURNS the hammer code and the updated propertyList
 */ 
 function drawHammer(currentString: number, eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
-  // TODO:
-  return [<></>, propertyList]
+  let newPropertyList : PropertyList = {...propertyList}
+
+  // Create the string used to access the property list
+  const s = `s${currentString}`
+
+  // Get the property list entry for hammerStart
+  const hammerStart = propertyList.hammerStart[s]
+
+  let hammerCode : ReactElement = <></>
+
+  // Decompose into variables
+  let [[oldX, oldY], oldFret, oldGrace, valid] = hammerStart
+
+  // Check if a hammer start is needed
+  if (valid) {
+
+    // Set default coordinates
+    let dx1 = oldX + 3.6
+    let dx2 = x - 0.7
+    let dy = yCoord - 3.5
+    let mid = (dx2 - dx1) * 0.3
+    let yRise = 2.1
+
+    // Tweak coordinates based on whether one of the notes is a grace note, and if either fret is >= 10 
+    if (oldGrace) {
+      dx1 -= 0.8 
+    }
+
+    if (isGrace) {
+      dx2 += 0.2
+    }
+
+    if (oldGrace && isGrace) { 
+      dy += 0.3
+      yRise -= 0.3
+    }
+
+    if (oldFret >= 10) {
+      dx1 += 1.4
+    }
+
+    if (fret >= 10) {
+      dx2 -= 1.7
+    }
+
+    hammerCode = <path className="hammer" d={`M ${dx1} ${dy} C ${dx1 + mid} ${dy - yRise}, ${dx2 - mid} ${dy - yRise}, ${dx2} ${dy}`} />
+
+    // Reset hammer start
+    newPropertyList.hammerStart[s] = [[0, 0], 0, false, false]
+
+  }
+
+  // Check to see if this note wants a hammer
+  const ham = eProperties.includes("ham")
+
+  if (ham) {
+    // If a hammer is on this note, update the property list
+    newPropertyList.hammerStart[s] = [[x, yCoord], fret, isGrace, true]
+  }
+
+  return [hammerCode, newPropertyList]
 
 }
 
@@ -34,8 +93,47 @@ RETURNS the harmonics code
 */ 
 function drawHarmonics(eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean) : ReactElement {
 
-  // TODO:
-  return <></>
+  // Check to see if the "har" property exists
+  const har = eProperties.includes("har")
+
+  let harCode : ReactElement = <></>
+
+  if (har) {
+
+    if (isGrace) {
+
+      let x1 = x - 2.8
+      let y = yCoord - 2.3
+      let x2 = x + 5.1
+      let xChange = 2.5
+      let yChange = 1.1
+
+      if (fret >= 10) {
+        x1 -= 1.1
+        x2 += 1.1
+      }
+
+      harCode = <path className="harmonic" d={`M ${x1} ${y} L ${x1 + xChange} ${y + yChange} M ${x1} ${y} L ${x1 + xChange} ${y - yChange} M ${x2} ${y} L ${x2 - xChange} ${y + yChange} M ${x2} ${y} L ${x2 - xChange} ${y - yChange} `} />
+
+    } else {
+
+      let x1 = x - 3.7
+      let y = yCoord - 2.3
+      let x2 = x + 6.8
+      let xChange = 3.5
+      let yChange = 1.5
+
+      if (fret >= 10) {
+        x1 -= 1.5
+        x2 += 1.5
+      }
+
+      harCode = <path className="harmonic" d={`M ${x1} ${y} L ${x1 + xChange} ${y + yChange} M ${x1} ${y} L ${x1 + xChange} ${y - yChange} M ${x2} ${y} L ${x2 - xChange} ${y + yChange} M ${x2} ${y} L ${x2 - xChange} ${y - yChange} `} />
+
+    }
+  }
+  
+  return harCode
 
 }
 
@@ -52,8 +150,48 @@ RETURNS the parens code
 */ 
 function drawParens(eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean) : ReactElement {
 
-  // TODO:
-  return <></>
+  // Check to see if the "par" property exists
+  const par = eProperties.includes("par")
+
+  let parCode : ReactElement = <></>
+
+  if (par) {
+
+    if (isGrace) {
+
+      let x1 = x - 0.7
+      let y = yCoord - 1.2
+      let x2 = x + 3
+
+      if (fret >= 10) {
+        x1 -= 1
+        x2 += 1
+      }
+
+      parCode = <>
+        <text textAnchor="middle" className="parens-grace" x={x1} y={y}>(</text>  
+        <text textAnchor="middle" className="parens-grace" x={x2} y={y}>)</text> 
+      </>
+    } else {
+
+      let x1 = x - 1
+      let y = yCoord - 0.8
+      let x2 = x + 4
+
+      if (fret >= 10) {
+        x1 -= 1
+        x2 += 1
+      }
+
+      parCode = <>
+        <text textAnchor="middle" className="parens" x={x1} y={y}>(</text> 
+        <text textAnchor="middle" className="parens" x={x2} y={y}>)</text> 
+      </>
+    }
+
+  }
+
+  return parCode
 
 }
 
@@ -70,8 +208,32 @@ RETURNS the SlideDown code
 */ 
 function drawSlideDown(eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean) : ReactElement {
 
-  // TODO:
-  return <></>
+  // Check to see if the "sld" property exists
+  const sld = eProperties.includes("sld")
+
+  let sldCode : ReactElement = <></>
+
+  if (sld) {
+
+    let x0 = x - 5.5
+    let y0 = yCoord - 3.8
+
+    if (isGrace) {
+      x0 += 0.8
+      y0 += 0.3
+      yCoord -= 0.4
+    }
+
+    if (fret >= 10) {
+      x0 -= 1
+      x -= 1 
+    }
+
+    sldCode = <path className="slide" d={`M ${x0} ${y0} L ${x - 0.7} ${yCoord - 0.5}`} />  
+
+  }
+
+  return sldCode
 
 }
 
@@ -88,8 +250,32 @@ RETURNS the SlideUp code
 */ 
 function drawSlideUp(eProperties: EitherProperty[], fret: number, x: number, yCoord: number, isGrace: boolean) : ReactElement {
 
-  // TODO:
-  return <></>
+  // Check to see if the "slu" property exists
+  const slu = eProperties.includes("slu")
+
+  let sluCode : ReactElement = <></>
+
+  if (slu) {
+
+    let x0 = x - 5.5
+    let y0 = yCoord - 0.7
+
+    if (isGrace) {
+      x0 += 0.5
+      y0 -= 0.3
+      yCoord += 0.4
+    }
+
+    if (fret >= 10) {
+      x0 -= 1
+      x -= 1 
+    }
+
+    sluCode = <path className="slide" d={`M ${x0} ${y0} L ${x - 0.7} ${yCoord - 3.8}`} /> 
+
+  }
+
+  return sluCode
 
 }
 
@@ -155,7 +341,7 @@ function drawTie(currentString: number, eProperties: EitherProperty[], fret: num
 
     tieCode = <path className="tie" d={`M ${dx1} ${dy} C ${dx1 + mid} ${dy - yRise}, ${dx2 - mid} ${dy - yRise}, ${dx2} ${dy}`} />
 
-    // Reset tie stub
+    // Reset tie start
     newPropertyList.tieStart[s] = [[0, 0], 0, false, false]
 
   }
@@ -361,7 +547,6 @@ function drawEProperties(currentString: number, eProperties: EitherProperty[], f
   let newPropertyList : PropertyList = {...propertyList}
   let newPreviousPageCode : PreviousPageCode = {...previousPageCode}
 
-  // TODO: this probably needs to be edited
   const yCoord = y + 2.3 - (6 * (currentString - 1))
 
   // Slides
@@ -1298,7 +1483,6 @@ function checkEndTie(nextLine: Line, propertyList: PropertyList) : [ReactElement
 
   }
 
-
   return [tieCode, newPropertyList]
 }
 
@@ -1314,9 +1498,39 @@ RETURNS slur ending code, and the updated property list
 function checkEndSlur(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let slurCode : ReactElement = <></>
 
-  // TODO:
-  return [<></>, newPropertyList]
+  // Decompose variables
+  let [[x, y], grace, valid] = propertyList.slurStart
+
+  // Check if this slurStart is valid
+  if (valid) {
+
+    // Draw the stub for the slur (note: lineEndX comes from constants.tsx)
+    x += 2.6
+    const x2 = lineEndX
+    const diff = x2 - x
+    const halfway = diff * 0.3
+
+    if (diff < 20) {
+      slurCode = <path className="slur" d={`M ${x} ${y - 44} C ${x + halfway} ${y - 47}, ${x2 - halfway} ${y - 41.5}, ${x2} ${y - 44}`} />
+    } else if (diff < 80) {
+      slurCode = <path className="slur" d={`M ${x} ${y - 44} C ${x + halfway} ${y - 48.5}, ${x2 - halfway} ${y - 48.5}, ${x2} ${y - 44}`} />
+    } else if (diff < 150) {
+      slurCode = <path className="slur" d={`M ${x} ${y - 44} C ${x + halfway} ${y - 51.5}, ${x2 - halfway} ${y - 51.5}, ${x2} ${y - 44}`} />
+    } else {
+      slurCode = <path className="slur" d={`M ${x} ${y - 44} C ${x + halfway} ${y - 55}, ${x2 - halfway} ${y - 55}, ${x2} ${y - 44}`} />
+    }
+
+    // Get the next start value of the next line
+    let [nextX, nextY] = nextLine.start
+
+    // Update the property list
+    newPropertyList.slurStart = [[nextX, nextY], grace, true]
+
+  }
+  
+  return [slurCode, newPropertyList]
 }
 
 
@@ -1331,9 +1545,61 @@ RETURNS mute ending code, and the updated property list
 function checkEndMute(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let muteCode : ReactElement = <></>
 
-  // TODO:
-  return [<></>, newPropertyList]
+  // Decompose variables
+  let [[x, y], valid] = propertyList.muteStart
+  let x2 = lineEndX + 4 // from constants
+
+  x += 8
+  y += 7.8
+
+  // Check if this muteStart is valid
+  if (valid) {
+
+    // Draw the stub for the mute
+    // Figure out how many dashed lines are needed
+    const counter = Math.floor((x2 - x) / 6)
+    const counterMap = Array.from(Array(counter).keys())
+    const xAfterDashes = x2 + (counter * 6)
+
+    // Is an additional small line needed at the end?
+    // If there is a space greater than 2, add a small extra line
+    const remainder = x2 - xAfterDashes
+    let needLine : boolean
+    let extraLength : number
+
+    if (remainder > 2) {
+      needLine = true
+      extraLength = Math.min(4, remainder - 2)
+    } else {
+      needLine = false
+      extraLength = 0
+    }
+
+    // Draw the palm mute
+    muteCode = <>
+      <text textAnchor="middle" x={`${x - 6}`} y={`${y + 2.2}`} className="palm-mute">PM</text>
+      
+      {counterMap.map(i => {
+        return <path className="long-palm-mute" d={`M ${x + (i * 6)} ${y} l 4 0`} />
+      })}
+
+      {
+        needLine && <path className="long-palm-mute" d={`M ${xAfterDashes} ${y} l ${extraLength} 0`} />
+      }
+      
+    </>
+
+    // Get the next start value of the next line
+    let [nextX, nextY] = nextLine.start
+
+    // Update the property list
+    newPropertyList.muteStart = [[nextX + 5, nextY], true] 
+
+  }
+  
+  return [muteCode, newPropertyList]
 }
 
 
@@ -1341,6 +1607,7 @@ function checkEndMute(nextLine: Line, propertyList: PropertyList) : [ReactElemen
 
 
 /* Check and draw any needed endings for hammers
+Same logic as tie ends
 1. nextLine: either the next line on the same page, or the first line on the next page
 2. propertyList: used to keep track of properties that extend past lines or pages
 RETURNS hammer ending code, and the updated property list
@@ -1348,9 +1615,41 @@ RETURNS hammer ending code, and the updated property list
 function checkEndHammer(nextLine: Line, propertyList: PropertyList) : [ReactElement, PropertyList] {
 
   let newPropertyList : PropertyList = {...propertyList}
+  let hammerCode : ReactElement = <></>
 
-  // TODO:
-  return [<></>, newPropertyList]
+  // Loop through each item in hammerStart
+  for (const s in propertyList.tieStart) {
+
+    // Decompose variables
+    let [[x, y], fret, grace, valid] = propertyList.hammerStart[s]
+
+    // The number of the guitar string
+    const currentString = parseInt(s.slice(1))
+
+    // Check if this hammerstart is valid
+    if (valid) {
+
+      // Draw a stub for the hammer
+      x += 3.6
+      y -= 3.5
+      const x2 = x + 12
+      const mid = (x2 - x) * 0.3
+      const yRise = 2.1
+      hammerCode = <path className="hammer" d={`M ${x} ${y} C ${x + mid} ${y - yRise}, ${x2 - mid} ${y - yRise}, ${x2} ${y}`} />
+
+      // Get the next start value of the next line
+      let [nextX, nextY] = nextLine.start
+      nextX += 8
+      nextY = nextY + 2.3 - (6 * (currentString - 1))
+
+      // Update the property list
+      newPropertyList.hammerStart[s] = [[nextX, nextY], fret, grace, true]
+
+    }
+
+  }
+
+  return [hammerCode, newPropertyList]
 }
 
 
@@ -1532,34 +1831,6 @@ export function drawProperties(page: Page, propertyList: PropertyList, previousP
   return [result, newPropertyList, newPreviousPageCode]
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
