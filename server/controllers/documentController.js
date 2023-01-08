@@ -53,7 +53,7 @@ const createDocument = async (req, res, next) => {
         }
 
         title = title ?? ""
-        data = data ?? ""
+        data = data ?? {}
 
         // Create the new document
         const document = await Document.create({ _id: id, title, data })

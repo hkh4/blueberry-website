@@ -68,7 +68,7 @@ function Editor({
 
   // Set up socket.io
   useEffect(() => {
-    const s = io("http://localhost:5000")
+    const s = io("http://localhost:5000") 
     setSocket(s)
 
     return () => {
@@ -79,7 +79,7 @@ function Editor({
 
   // When the text on the screen changes, send it to the server, which will then send the changes to everyone else in the document
   useEffect(() => {
-    if (socket == null || quill == null) return
+    if (!socket || !quill) return
 
     const handler = (delta, oldDelta, source) => {
       if (source !== "user") return
@@ -96,7 +96,7 @@ function Editor({
   // Receive changes from the server (from other users in this doc)
   useEffect(() => {
 
-    if (socket == null || quill == null) return
+    if (!socket || !quill) return
 
     const handler = delta => {
       quill.updateContents(delta)
@@ -114,20 +114,47 @@ function Editor({
   // When the document first loads, query mongodb to see if this document has saved data and load it
   useEffect(() => {
 
-    console.log("reset")
+    if (!socket || !quill || !documentID) return 
 
-    if (socket == null || quill == null) return 
+    const CancelToken = axios.CancelToken
+    let cancel;
+    let mounted = true;
 
-    // Use this document's id to query database
-    socket.emit("get-document", documentID)
+    (async () => {
 
-    // Retrieve saved data, load it into quill, and enable editing
-    socket.once("load-document", document => {
-      quill.setContents(document.data)
-      setTitle(document.title)
-      setStartSaving(true)
-      quill.enable()
-    })
+      try {
+
+        // Get the document data
+        const response = await axios.get(`/api/documents/${documentID}`)
+
+        if (response.status === 200 && mounted) {
+
+          // Set state
+          setTitle(response.data.title)
+          quill.setContents(response.data.data)
+
+          // Use this document's id to join a room
+          socket.emit("join-document-room", documentID)
+
+          // Retrieve saved data, load it into quill, and enable editing
+          socket.once("joined-document-room", () => {
+            setStartSaving(true)
+            quill.enable()
+          })
+
+        }
+
+      } catch(e) {
+        if (axios.isCancel(e)) return
+        errorHandling(e)
+      }
+
+    })()
+
+    return () => {
+      mounted = false
+      if (cancel) cancel()
+    }
 
   }, [socket, quill, documentID])
 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { v4 as uuidV4 } from "uuid"
 import axios from "axios"
 
@@ -9,6 +9,7 @@ import errorHandling from "../../../helpers/errorHandling"
 function Landing() {
 
     const { documents, dispatch } = useDocumentsContext()
+    const navigate = useNavigate()
 
     // Load documents from database
     useEffect(() => {
@@ -27,11 +28,12 @@ function Landing() {
                     })
                 })
 
-                if (response.status === 200) {
+                if (response.status === 200 && mounted) {
                     dispatch({type: 'SET_DOCUMENTS', payload: response.data})
                 }
 
             } catch(e) {
+                if (axios.isCancel(e)) return
                 errorHandling(e)
             }
 
@@ -44,6 +46,37 @@ function Landing() {
 
     }, [dispatch])
 
+    // Function that loads a new document when the "New" button is clicked
+    async function openNewDocument() {
+
+        try {
+
+            // Get a random id
+            const documentID = uuidV4()
+
+            // Create the new document
+            const response = await axios.post("/api/documents", {
+                id: documentID,
+                title: "Untitled",
+                data: {}
+            })
+
+            console.log(response)
+
+            // Redirect to this new doc
+            if (response.status === 200) {
+                console.log("in")
+                navigate(`/documents/${documentID}`)
+            }
+            
+
+        } catch(e) {
+            errorHandling(e)
+        }
+
+    }
+
+
     return (
         <div id="home">
             <div className="documents">
@@ -51,6 +84,7 @@ function Landing() {
                 {documents.map(d => {
                     return <Link className="link" to={`documents/${d._id}`} key={d._id}>{`${d.title}`}</Link>
                 })}
+                <button onClick={openNewDocument}>New</button>
                 <Link className="link" to={`documents/${uuidV4()}`}>New</Link>
 
             </div>
