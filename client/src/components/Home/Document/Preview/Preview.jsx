@@ -1,7 +1,5 @@
-import React, { useEffect, useCallback, useRef } from "react"
+import { useEffect } from "react"
 import blueberry from "./../../../../blueberry/program.tsx"
-import { renderToString } from "react-dom/server"
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript"
 
 function Preview({
   input,
@@ -27,7 +25,7 @@ function Preview({
       setSVG(result)
     }
  
-  }, [input])
+  }, [input, setError, setSVG])
 
   return (
     <div id="preview" ref={previewRef}>

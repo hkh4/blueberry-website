@@ -1,8 +1,18 @@
 import { useCallback, useState, useEffect } from "react"
+import axios from "axios"
 import "quill/dist/quill.snow.css"
 import Quill from "quill"
 import { io } from "socket.io-client"
-import jsPDF from "jspdf"
+import { useParams } from "react-router-dom"
+
+import downloadPDF from "./download_pdf"
+import errorHandling from "../../../../helpers/errorHandling"
+
+import useInterval from "./../../../../hooks/useInterval"
+
+
+// Constants
+const SAVE_INTERVAL_MS = 2000
 
 
 function Editor({
@@ -13,7 +23,9 @@ function Editor({
 
   const [quill, setQuill] = useState()
   const [socket, setSocket] = useState()
-
+  const [title, setTitle] = useState("")
+  const [startSaving, setStartSaving] = useState(false)
+  const {id: documentID} = useParams()
 
   // When the compile button is clicked, get the text and send it over to Document by settings its "input" state
   function compile() {
@@ -21,84 +33,40 @@ function Editor({
     setInput(text)
   }
 
+  // Save the document
+  async function save() {
+    
+    if (!quill || !socket || !startSaving) return
 
-  // Download as a pdf
-  async function downloadPDF() {
-
-    try {
-
-      // Get the preview box
-      const previewBox = previewRef.current
-      // The actual SVGs within
-      const children = Array.from(previewBox.children)
-
-      // Initialize the doc
-      const doc = new jsPDF({
-        unit: "px",
-        format: [612, 792],
-        compress: true
-      })
-      doc.deletePage(1)
-
-      // Loop through each page
-      await Promise.all(children.map(async (child) => {
-
-        // Get the canvas
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // Set the background to be white
-        ctx.fillStyle = "white"
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-        // Turn the svg code into a string that can be used later when making the image
-        const data = (new XMLSerializer()).serializeToString(child);
-        const DOMURL = window.URL || window.webkitURL || window;
-
-        // Initialize the new image and pass the serialized data to a Blob
-        const img = new Image();
-        const svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-        const url = DOMURL.createObjectURL(svgBlob);
-
-        img.src = url;
-
-        // Once the image loads, draw on it
-        return new Promise((resolve, reject) => {
-          img.onload = function() {
-
-            ctx.drawImage(img, 0, 0);
-
-            const imgURI = canvas
-              .toDataURL('image/png')
-              .replace('image/png', 'image/octet-stream');
-
-            // Create a new page on the pdf
-            doc.addPage()
-
-            // Draw the image on the new pdf page
-            doc.addImage(imgURI, "PNG", 0, 0, 612, 792, '', 'FAST')
-
-            // Clear the canvas for the next page
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Resolve this promise
-            resolve()
-          };
-        })
-
-      }))
-
-      doc.save("test.pdf")
-
-    } catch(e) {
-      console.log(e)
-    }
-
+    return await axios.patch(`/api/documents/${documentID}`, {
+      title,
+      data: quill.getContents()
+    })
   }
 
+  // Custom interval hook to save automatically
+  useInterval(save, SAVE_INTERVAL_MS, [socket, quill, startSaving])
 
 
-  // set up socket.io
+  // Set up quill
+  const wrapperRef = useCallback(wrapper => {
+
+    if (wrapper == null) return
+
+    wrapperRef.innerHTML = ""
+    const editor = document.createElement("div")
+    wrapper.append(editor)
+    const q = new Quill(editor, { theme: "snow", modules: { toolbar: [[{'font': []}, {'color': []}], ['bold', 'italic', 'underline', 'strike']] } })
+
+    // Quill is disabled to start, until data is loaded from mongodb
+    q.disable()
+    q.setText('Loading...')
+    setQuill(q)
+
+  }, [])
+
+
+  // Set up socket.io
   useEffect(() => {
     const s = io("http://localhost:5000")
     setSocket(s)
@@ -108,7 +76,8 @@ function Editor({
     }
   }, [])
 
-  // when the text on the screen changes, send
+
+  // When the text on the screen changes, send it to the server, which will then send the changes to everyone else in the document
   useEffect(() => {
     if (socket == null || quill == null) return
 
@@ -124,7 +93,7 @@ function Editor({
   }, [socket, quill])
 
 
-  // receive changes
+  // Receive changes from the server (from other users in this doc)
   useEffect(() => {
 
     if (socket == null || quill == null) return
@@ -142,27 +111,41 @@ function Editor({
   }, [socket, quill])
 
 
+  // When the document first loads, query mongodb to see if this document has saved data and load it
+  useEffect(() => {
 
-  // set up quill
-  const wrapperRef = useCallback(wrapper => {
+    console.log("reset")
 
-    if (wrapper == null) return
+    if (socket == null || quill == null) return 
 
-    wrapperRef.innerHTML = ""
-    const editor = document.createElement("div")
-    wrapper.append(editor)
-    const q = new Quill(editor, { theme: "snow", modules: { toolbar: [] } })
-    setQuill(q)
+    // Use this document's id to query database
+    socket.emit("get-document", documentID)
 
-  }, [])
+    // Retrieve saved data, load it into quill, and enable editing
+    socket.once("load-document", document => {
+      quill.setContents(document.data)
+      setTitle(document.title)
+      setStartSaving(true)
+      quill.enable()
+    })
+
+  }, [socket, quill, documentID])
+
 
   return (
+    <>
     <div className="editor">
-      <canvas height="7920" width="6120" id="canvas"></canvas>
+      <input maxLength="50" value={title} onChange={e => setTitle(e.target.value)} type="text" />
       <div id="container" ref={wrapperRef}></div>
-      <button className="compile" onClick={compile}>Compile</button>
-      <button className="download" onClick={downloadPDF}>Download PDF</button>
+
+      <div className="editor-buttons">
+        <button className="button compile" onClick={compile}>Compile</button>
+        <button className="button download" onClick={() => downloadPDF(previewRef)}>Download PDF</button>
+        <button className="button save" onClick={save}>Save</button>
+      </div>
+      
     </div>
+    </>
   )
 
 }

@@ -1,25 +1,37 @@
-import React, { lazy, Suspense } from "react"
-import { Route, Routes } from 'react-router-dom';
-
-import Loading from "./../Loading/Loading"
-import Testing from "./../Testing/Testing"
+import { lazy, Suspense } from "react"
+import { 
+  BrowserRouter as Router, 
+  Route, 
+  Routes,
+  Link
+} from 'react-router-dom';
 
 const Document = lazy(() => import("./Document/Document"))
+const Landing = lazy(() => import("./Landing/Landing"))
 
 function Home() {
 
   return (
-    <Suspense fallback={<Loading />}>
-      <Routes>
 
-        <Route path="/testing" element={<Testing />} />
+    <>
 
-        <Route path="*" element={<Document />} />
+    <div className="header">
 
-      </Routes>
-    </Suspense>
+      <Link to="/">Home</Link>
 
-  )
+    </div>
+
+    <Routes>
+
+      <Route path="/documents/:id" element={<Document />}/>
+
+      <Route path="*" element={<Landing />}/>
+
+    </Routes>
+
+    </>
+
+    )
 
 }
 

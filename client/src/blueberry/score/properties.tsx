@@ -1,5 +1,5 @@
 import { ReactElement, Fragment } from "react"
-import { PropertyList, Page, Line, Measure, Element, Notehead, GuitarString, Pitch, Ints, EitherProperty, MultiProperty, Note, PreviousPageCode } from "./types"
+import { PropertyList, Page, Line, Measure, Element, Notehead, GuitarString, EitherProperty, MultiProperty, Note, PreviousPageCode } from "./types"
 import { lineEndX } from "./constants"
 
 
@@ -27,7 +27,7 @@ function drawHammer(currentString: number, eProperties: EitherProperty[], fret: 
   let hammerCode : ReactElement = <></>
 
   // Decompose into variables
-  let [[oldX, oldY], oldFret, oldGrace, valid] = hammerStart
+  let [[oldX, _], oldFret, oldGrace, valid] = hammerStart
 
   // Check if a hammer start is needed
   if (valid) {
@@ -305,7 +305,7 @@ function drawTie(currentString: number, eProperties: EitherProperty[], fret: num
   let tieCode : ReactElement = <></>
 
   // Decompose into variables
-  let [[oldX, oldY], oldFret, oldGrace, valid] = tieStart
+  let [[oldX, _], oldFret, oldGrace, valid] = tieStart
 
   // Check if a tie start is needed
   if (valid) {

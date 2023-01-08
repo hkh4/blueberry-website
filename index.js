@@ -1,33 +1,28 @@
 require('dotenv').config()
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const cors = require('cors')
+const cors = require('cors') 
 
-const test = require("./api/test")
 
+// API routes
+const test = require("./server/routes/test")
+const documentRoutes = require("./server/routes/documents")
+
+
+// Express setup
 const app = express();
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
 app.use(cors())
 app.use("/api", test)
-
+app.use("/api/documents", documentRoutes)
 const http = require("http").Server(app)
 
-const io = require('socket.io')(http, {
-  cors: {
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST']
-  }
-})
 
-// socket
-io.on("connection", socket => {
-  socket.on('send-changes', delta => {
-    socket.broadcast.emit("receive-changes", delta)
-  })
-})
+// Config
+require("./server/mongodb/mongoose-setup")
+const socketIO_setup = require("./server/socketio/socketio-setup")
+socketIO_setup(http)
 
 // Error handling
 app.use((error, req, res, next) => {

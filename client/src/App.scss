@@ -6,29 +6,57 @@
 
 // ********************* DOCUMENT
 
-// ******** Editor
+.document {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+}
+
 .editor {
+  height: 100%;
+  width: 40%;
+  display: flex;
+  flex-direction: column;
 
   #container {
-    height: 20vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .compile {
     position: relative;
-    top: 20px;
   }
 
   .download {
     position: relative;
-    top: 20px;
   }
 
   canvas {
     display: none;
   }
+
+  .editor-buttons {
+    height: 30px;
+  }
 }
 
 #preview {
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 60%;
+}
+
+
+// ***************** Home
+
+#home {
+
+  .documents {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .link {
+    display: block;
+  }
 }
