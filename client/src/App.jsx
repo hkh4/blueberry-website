@@ -27,9 +27,9 @@ function App() {
       <Header />
       <Suspense fallback={<Loading />}>
         <Routes>
-          <Route path="/login" element={user ? <Login /> : <Navigate to="/home" />} />
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/home" />} />
 
-          <Route path="/signup" element={user ? <Signup /> : <Navigate to="/home" />} />
+          <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/home" />} />
 
           <Route path="/400" element={<Error400 />} />
 
