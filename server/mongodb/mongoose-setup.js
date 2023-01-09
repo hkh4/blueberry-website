@@ -2,5 +2,11 @@ const mongoose = require('mongoose');
 
 // Connect mongoose
 mongoose.set('strictQuery', true);
-mongoose.connect(`mongodb+srv://blueberry:${process.env.MONGOPASS}@blueberry.ipb2g.mongodb.net/?retryWrites=true&w=majority`)
-//  .then(() => console.log("Connected to mongoose"))
+
+// Connect to the production or development database depending on env variable
+if (process.env.NODE_ENV === "production") {
+  mongoose.connect(`mongodb+srv://blueberry:${process.env.MONGOPASS}@blueberry-production.ipb2g.mongodb.net/?retryWrites=true&w=majority`)
+} else {
+  mongoose.connect(`mongodb+srv://blueberry:${process.env.MONGOPASS}@blueberry-development.ipb2g.mongodb.net/?retryWrites=true&w=majority`)
+}
+
