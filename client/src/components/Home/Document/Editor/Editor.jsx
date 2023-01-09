@@ -9,6 +9,7 @@ import downloadPDF from "./download_pdf"
 import errorHandling from "../../../../helpers/errorHandling"
 
 import useInterval from "./../../../../hooks/useInterval"
+import { useAuthContext } from "./../../../../hooks/useAuthContext"
 
 
 // Constants
@@ -17,7 +18,6 @@ const SAVE_INTERVAL_MS = 2000
 
 function Editor({
   setInput,
-  svg,
   previewRef
 }) {
 
@@ -26,6 +26,7 @@ function Editor({
   const [title, setTitle] = useState("")
   const [startSaving, setStartSaving] = useState(false)
   const {id: documentID} = useParams()
+  const { user } = useAuthContext()
 
   // When the compile button is clicked, get the text and send it over to Document by settings its "input" state
   function compile() {
@@ -36,16 +37,20 @@ function Editor({
   // Save the document
   async function save() {
     
-    if (!quill || !socket || !startSaving) return
+    if (!quill || !socket || !startSaving || !user) return
 
     return await axios.patch(`/api/documents/${documentID}`, {
       title,
       data: quill.getContents()
+    }, {
+      headers: {
+        "Authorization" : `Bearer ${user.token}`
+      }
     })
   }
 
   // Custom interval hook to save automatically
-  useInterval(save, SAVE_INTERVAL_MS, [socket, quill, startSaving])
+  useInterval(save, SAVE_INTERVAL_MS, [socket, quill, startSaving, user])
 
 
   // Set up quill
@@ -114,7 +119,7 @@ function Editor({
   // When the document first loads, query mongodb to see if this document has saved data and load it
   useEffect(() => {
 
-    if (!socket || !quill || !documentID) return 
+    if (!socket || !quill || !documentID || !user) return 
 
     const CancelToken = axios.CancelToken
     let cancel;
@@ -125,7 +130,11 @@ function Editor({
       try {
 
         // Get the document data
-        const response = await axios.get(`/api/documents/${documentID}`)
+        const response = await axios.get(`/api/documents/${documentID}`, {
+          headers: {
+            "Authorization" : `Bearer ${user.token}`
+          }
+        })
 
         if (response.status === 200 && mounted) {
 
@@ -156,7 +165,7 @@ function Editor({
       if (cancel) cancel()
     }
 
-  }, [socket, quill, documentID])
+  }, [socket, quill, documentID, user])
 
 
   return (

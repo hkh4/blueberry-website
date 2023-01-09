@@ -1,11 +1,13 @@
 import { DocumentsContext } from "./../contexts/DocumentsContext"
 import { useContext } from "react"
 
-export const useDocumentsContext = () => {
+export function useDocumentsContext() {
     const context = useContext(DocumentsContext)
 
     if (!context) {
-        throw Error("useDocumentsContext must be used inside a DocumentsContextProvider")
+        let err = new Error("Cannot access document context outside provider")
+        err.status = 500
+        err.redirect = true
     }
 
     return context

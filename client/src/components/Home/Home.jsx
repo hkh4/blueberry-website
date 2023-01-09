@@ -1,37 +1,42 @@
 import { lazy, Suspense } from "react"
 import { 
-  BrowserRouter as Router, 
+  BrowserRouter as Router,  
   Route, 
   Routes,
-  Link
+  Navigate
 } from 'react-router-dom';
+import { useAuthContext } from "./../../hooks/useAuthContext"
 
 const Document = lazy(() => import("./Document/Document"))
 const Landing = lazy(() => import("./Landing/Landing"))
+const Welcome = lazy(() => import("./Welcome/Welcome"))
+
 
 function Home() {
 
-  return (
+  const { user } = useAuthContext()
 
+  return (
     <>
 
-    <div className="header">
+    {user ? (
 
-      <Link to="/">Home</Link>
+      <Routes>
 
-    </div>
+        <Route path="/documents/:id" element={<Document />}/>
 
-    <Routes>
+        <Route path="/home" element={<Landing />}/>
 
-      <Route path="/documents/:id" element={<Document />}/>
+        <Route path="*" element={<Navigate to="/home" replace />}/>
 
-      <Route path="*" element={<Landing />}/>
+      </Routes>
 
-    </Routes>
-
+    ) : (
+      <Welcome />
+    )}
+    
     </>
-
-    )
+  )
 
 }
 

@@ -1,4 +1,3 @@
-const mongoose = require("mongoose")
 const Document = require("./../mongodb/models/Document")
 
 // Get all documents

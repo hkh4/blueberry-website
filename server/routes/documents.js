@@ -5,7 +5,12 @@ const {
     createDocument,
     deleteDocument,
     updateDocument
-} = require("../controllers/documentController")
+} = require("../controllers/documentController") 
+
+const requireAuth = require("./../middleware/requireAuth")
+
+// Require auth for all document routes
+router.use(requireAuth)
 
 // GET all documents
 router.get('/', getDocuments)

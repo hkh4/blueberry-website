@@ -1,12 +1,13 @@
 require('dotenv').config()
 const express = require('express');
 const path = require('path');
-const cors = require('cors') 
+const cors = require('cors')  
 
 
 // API routes
 const test = require("./server/routes/test")
 const documentRoutes = require("./server/routes/documents")
+const userRoutes = require("./server/routes/user")
 
 
 // Express setup
@@ -16,6 +17,7 @@ app.use(express.json())
 app.use(cors())
 app.use("/api", test)
 app.use("/api/documents", documentRoutes)
+app.use("/api/user", userRoutes)
 const http = require("http").Server(app)
 
 

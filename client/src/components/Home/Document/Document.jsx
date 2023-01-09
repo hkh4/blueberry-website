@@ -18,7 +18,6 @@ function Document() {
 
       <Editor
         setInput={setInput}
-        svg={svg}
         previewRef={previewRef}
       />
 
