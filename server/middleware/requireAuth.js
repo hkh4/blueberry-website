@@ -14,7 +14,7 @@ const requireAuth = async (req, res, next) => {
     const token = authorization.split(" ")[1]
 
     // Verify token
-    const {_id} = jwt.verify(token, process.env.SECRET)
+    const {_id, admin} = jwt.verify(token, process.env.SECRET)
 
     // Attach user to request. Look up the user in the database to be safe, make sure this user still actually exists
     req.user = await User.findOne({ _id }).select('_id')

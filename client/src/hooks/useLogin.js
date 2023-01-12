@@ -17,7 +17,7 @@ export function useLogin() {
 
             // Try to log in
             const response = await axios.post('/api/user/login', {
-                email,
+                email, 
                 password
             })
 

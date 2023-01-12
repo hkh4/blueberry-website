@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose")
+const { Schema, model, ObjectId } = require("mongoose")
 const bcrypt = require("bcrypt")
 const validator = require("validator")
 
@@ -10,6 +10,11 @@ const User = new Schema({
     },
     password: {
         type: String,
+        required: true
+    },
+    documents: [String],
+    admin: {
+        type: Boolean,
         required: true
     }
 })
@@ -46,14 +51,14 @@ User.statics.signup = async function(email, password) {
     if (exists) {
         e.message = "Email already in use"
         throw e
-    }
+    } 
 
     // Salt and hash password
     const salt = await bcrypt.genSalt(10)
     const hash = await bcrypt.hash(password, salt)
 
     // Save new user
-    const user = await this.create({ email, password: hash })
+    const user = await this.create({ email, password: hash, admin: false })
 
     return user
 }

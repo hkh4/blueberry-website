@@ -26,6 +26,9 @@ function Landing() {
 
       try {
         const response = await axios.get("/api/documents/", {
+          params: {
+            id: user.id
+          },
           cancelToken: new CancelToken(function executor(c) {
             cancel = c;
           }),
@@ -65,6 +68,7 @@ function Landing() {
         id: documentID,
         title: "Untitled",
         data: {},
+        user: user.id
       }, {
         headers: {
           "Authorization" : `Bearer ${user.token}`

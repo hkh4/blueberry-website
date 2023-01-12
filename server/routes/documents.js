@@ -2,7 +2,7 @@ const router = require("express").Router()
 const {
     getDocument,
     getDocuments,
-    createDocument,
+    createDocument, 
     deleteDocument,
     updateDocument
 } = require("../controllers/documentController") 

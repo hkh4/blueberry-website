@@ -1,14 +1,24 @@
 const Document = require("./../mongodb/models/Document")
+const User = require("./../mongodb/models/User")
+const mongoose = require("mongoose")
 
-// Get all documents
+// Get all documents based on query params, which should include the userid
 const getDocuments = async (req, res, next) => {
 
     try {
 
-        const documents = await Document.find({}).sort({updatedAt: -1})
+        const id = req.query.id
+
+        // Get the user first
+        const user = await User.findById(id)
+
+        // Get documents from this user
+        const documents = await Document.find({_id: {$in: user.documents}}).sort({updatedAt: -1})
+
         res.status(200).json(documents)
 
     } catch(e) {
+        console.log(e)
         next(e)
     }
 
@@ -41,7 +51,7 @@ const createDocument = async (req, res, next) => {
 
     try {
 
-        let {id, title, data} = req.body
+        let {user, id, title, data} = req.body
 
         // The ID field needs to be filled out
         if (!id) {
@@ -55,11 +65,15 @@ const createDocument = async (req, res, next) => {
         data = data ?? {}
 
         // Create the new document
-        const document = await Document.create({ _id: id, title, data })
+        const document = await Document.create({ _id: id, title, data, users: [mongoose.Types.ObjectId(user)] })
+
+        // Add the id of this document to the list of documents of the user
+        await User.updateOne({_id: user}, {$push: {documents: id}})
 
         res.status(200).json(document)
 
     } catch(e) {
+        console.log(e)
         next(e)
     }
 }
