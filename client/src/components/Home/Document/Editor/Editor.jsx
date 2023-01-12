@@ -58,7 +58,7 @@ function Editor({
 
     if (wrapper == null) return
 
-    wrapperRef.innerHTML = ""
+    wrapper.innerHTML = ""
     const editor = document.createElement("div")
     wrapper.append(editor)
     const q = new Quill(editor, { theme: "snow", modules: { toolbar: [[{'font': []}, {'color': []}], ['bold', 'italic', 'underline', 'strike']] } })
@@ -73,7 +73,10 @@ function Editor({
 
   // Set up socket.io
   useEffect(() => {
-    const s = io("http://localhost:5000") 
+
+    const ENDPOINT = process.env.NODE_ENV == "production" ? 'https://blueberry-website.herokuapp.com' : 'http://localhost:5000'
+
+    const s = io(ENDPOINT) 
     setSocket(s)
 
     return () => {
