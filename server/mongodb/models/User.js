@@ -4,10 +4,10 @@ const validator = require("validator")
 
 const User = new Schema({
     email: {
-        type: String,
+        type: String, 
         required: true,
         unique: true
-    },
+    }, 
     password: {
         type: String,
         required: true

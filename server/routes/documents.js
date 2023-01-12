@@ -4,7 +4,8 @@ const {
     getDocuments,
     createDocument, 
     deleteDocument,
-    updateDocument
+    updateDocument,
+    shareDocument
 } = require("../controllers/documentController") 
 
 const requireAuth = require("./../middleware/requireAuth")
@@ -26,6 +27,9 @@ router.delete('/:id', deleteDocument)
 
 // UPDATE a document
 router.patch('/:id', updateDocument)
+
+// Share with another user
+router.patch('/share/:id', shareDocument)
 
 
 module.exports = router

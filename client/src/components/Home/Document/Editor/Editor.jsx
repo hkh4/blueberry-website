@@ -10,6 +10,7 @@ import errorHandling from "../../../../helpers/errorHandling"
 
 import useInterval from "./../../../../hooks/useInterval"
 import { useAuthContext } from "./../../../../hooks/useAuthContext"
+import e from "express"
 
 
 // Constants
@@ -25,6 +26,9 @@ function Editor({
   const [socket, setSocket] = useState()
   const [title, setTitle] = useState("")
   const [startSaving, setStartSaving] = useState(false)
+  const [shareEmail, setShareEmail] = useState("")
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareError, setShareError] = useState(null)
   const {id: documentID} = useParams()
   const { user } = useAuthContext()
 
@@ -36,17 +40,48 @@ function Editor({
 
   // Save the document
   async function save() {
-    
-    if (!quill || !socket || !startSaving || !user) return
 
-    return await axios.patch(`/api/documents/${documentID}`, {
-      title,
-      data: quill.getContents()
-    }, {
-      headers: {
-        "Authorization" : `Bearer ${user.token}`
-      }
-    })
+    try {
+
+      if (!quill || !socket || !startSaving || !user || !documentID) return
+
+      return await axios.patch(`/api/documents/${documentID}`, {
+        title,
+        data: quill.getContents()
+      }, {
+        headers: {
+          "Authorization" : `Bearer ${user.token}`
+        }
+      })
+
+    } catch(e) {
+      errorHandling(e)
+    }
+  
+  }
+
+  // Share the document with another user
+  async function shareDocument(e) {
+
+    try {
+
+      //e.preventDefault()
+
+      if (!user || !documentID) return
+
+      setShareError(null)
+
+      // Patch request to share
+      await axios.patch(`/api/documents/share/${documentID}`, {
+        email: shareEmail
+      })
+      
+
+    } catch(e) {
+      setShareError(e.message)
+      errorHandling(e)
+    }
+
   }
 
   // Custom interval hook to save automatically
@@ -179,8 +214,23 @@ function Editor({
 
       <div className="editor-buttons">
         <button className="button compile" onClick={compile}>Compile</button>
+        <button className="button share" onClick={shareDocument}>Share</button>
         <button className="button download" onClick={() => downloadPDF(previewRef)}>Download PDF</button>
         <button className="button save" onClick={save}>Save</button>
+      </div>
+
+      <div className="share-popup">
+        <form className="share-form" onSubmit={shareDocument}>
+          <h3>Share This Document</h3>
+          <label>Enter an email:</label>
+          <input 
+            type="email"
+            onChange={e => setShareEmail(e.target.value)}
+            value={shareEmail}
+          />
+          <button>Share</button>
+          {shareError && <span className="error">{shareError}</span>}
+        </form>
       </div>
       
     </div>

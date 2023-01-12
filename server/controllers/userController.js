@@ -35,7 +35,7 @@ const signupUser = async (req, res, next) => {
         const user = await User.signup(email, password)
 
         // Create a token
-        const token = createToken(user._id, false)
+        const token = createToken(user._id, false) 
 
         res.status(200).json({id: user._id, email, token, documents: []})
 

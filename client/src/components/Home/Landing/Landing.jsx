@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 import axios from "axios";
@@ -12,6 +12,7 @@ function Landing() {
   const { documents, dispatch } = useDocumentsContext();
   const { user } = useAuthContext()
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true)
 
   // Load documents from database
   useEffect(() => {
@@ -40,6 +41,7 @@ function Landing() {
         if (response.status === 200 && mounted) {
           dispatch({ type: "SET_DOCUMENTS", payload: response.data });
         }
+        setLoading(false)
       } catch (e) {
         if (axios.isCancel(e)) return;
         errorHandling(e);
@@ -87,15 +89,19 @@ function Landing() {
   return (
     <div id="home">
       <div className="documents">
-        {documents.map((d) => {
-          return (
-            <Link
-              className="link"
-              to={`/documents/${d._id}`}
-              key={d._id}
-            >{`${d.title}`}</Link>
-          );
-        })}
+        {loading ? (
+          <span>Loading...</span>
+        ) : (
+          documents.map((d) => {
+            return (
+              <Link
+                className="link"
+                to={`/documents/${d._id}`}
+                key={d._id}
+              >{`${d.title}`}</Link>
+            );
+          })
+        )}
         <button onClick={openNewDocument}>New</button>
       </div>
     </div>
