@@ -10,7 +10,6 @@ import errorHandling from "../../../../helpers/errorHandling"
 
 import useInterval from "./../../../../hooks/useInterval"
 import { useAuthContext } from "./../../../../hooks/useAuthContext"
-import e from "express"
 
 
 // Constants
@@ -65,20 +64,34 @@ function Editor({
 
     try {
 
-      //e.preventDefault()
+      e.preventDefault()
 
       if (!user || !documentID) return
 
       setShareError(null)
 
+      console.log("before")
+
       // Patch request to share
-      await axios.patch(`/api/documents/share/${documentID}`, {
+      const response = await axios.patch(`/api/documents/share/${documentID}`, {
         email: shareEmail
+      }, {
+        headers: {
+          "Authorization" : `Bearer ${user.token}`
+        }
       })
+
+      console.log(response)
+
+      console.log("after")
+
+      setShareOpen(false)
+
+      console.log(shareOpen)
       
 
     } catch(e) {
-      setShareError(e.message)
+      setShareError(e?.response?.data?.error?.message || e.message || "Error")
       errorHandling(e)
     }
 
@@ -214,24 +227,25 @@ function Editor({
 
       <div className="editor-buttons">
         <button className="button compile" onClick={compile}>Compile</button>
-        <button className="button share" onClick={shareDocument}>Share</button>
+        <button className="button share" onClick={e => setShareOpen(true)}>Share</button>
         <button className="button download" onClick={() => downloadPDF(previewRef)}>Download PDF</button>
         <button className="button save" onClick={save}>Save</button>
       </div>
 
+      {shareOpen && 
       <div className="share-popup">
-        <form className="share-form" onSubmit={shareDocument}>
-          <h3>Share This Document</h3>
-          <label>Enter an email:</label>
-          <input 
-            type="email"
-            onChange={e => setShareEmail(e.target.value)}
-            value={shareEmail}
-          />
-          <button>Share</button>
-          {shareError && <span className="error">{shareError}</span>}
-        </form>
-      </div>
+      <form className="share-form" onSubmit={shareDocument}>
+        <h3>Share This Document</h3>
+        <label>Enter an email:</label>
+        <input 
+          type="email"
+          onChange={e => setShareEmail(e.target.value)}
+          value={shareEmail}
+        />
+        <button>Share</button>
+        {shareError && <span className="error">{shareError}</span>}
+      </form>
+    </div>}
       
     </div>
     </>

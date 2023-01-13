@@ -152,11 +152,10 @@ const shareDocument = async (req, res, next) => {
             $push: {users: user._id}
         })
 
-        res.status(200)
+        res.status(200).json({})
 
 
     } catch(e) {
-        console.log(e)
         next(e)
     }
 
