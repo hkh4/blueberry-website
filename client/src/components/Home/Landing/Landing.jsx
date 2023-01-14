@@ -7,6 +7,9 @@ import { useDocumentsContext } from "./../../../hooks/useDocumentsContext";
 import { useAuthContext } from "./../../../hooks/useAuthContext"
 import errorHandling from "../../../helpers/errorHandling"; 
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
+
 function Landing() {
     
   const { documents, dispatch } = useDocumentsContext();
@@ -57,7 +60,7 @@ function Landing() {
   }, [dispatch, user]);
 
   // Function that loads a new document when the "New" button is clicked
-  async function openNewDocument() {
+  const openNewDocument = async () => {
 
     if (!user) return
 
@@ -86,21 +89,65 @@ function Landing() {
     }
   }
 
+  // function to delete a document when the trash can is clicked
+  const deleteDocument = async (id) => {
+
+    if (!user) return 
+
+    try {
+
+      // Delete the doc
+      const response = await axios.delete(`/api/documents/${id}`, {
+        headers: {
+          "Authorization" : `Bearer ${user.token}`
+        }
+      })
+
+      if (response.status === 200) {
+        // dispatch action
+        dispatch({ type: 'DELETE_DOCUMENT', payload: { id } })
+      }
+
+    } catch(e) {
+      errorHandling(e)
+    }
+  }
+
   return (
     <div id="home">
       <div className="documents">
         {loading ? (
           <span>Loading...</span>
         ) : (
-          documents.map((d) => {
-            return (
-              <Link
-                className="link"
-                to={`/documents/${d._id}`}
-                key={d._id}
-              >{`${d.title}`}</Link>
-            );
-          })
+          <table className="documents-table">
+            <tbody>
+              <tr>
+                <th className="documents-table-title">Title</th>
+                <th className="documents-table-modified">Last Modified</th>
+                <th className="documents-table-actions">Actions</th>
+              </tr>
+            
+              {documents.map((d) => {
+                return (
+                  <tr key={d._id}>
+                    <td>
+                      <Link
+                        className="link"
+                        to={`/documents/${d._id}`}
+                      >{`${d.title}`}</Link>
+                    </td>
+                    <td>uhhh</td>
+                    <td>
+                      <span onClick={e => deleteDocument(d._id)}>
+                        <FontAwesomeIcon icon={faTrashCan} />
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          
         )}
         <button onClick={openNewDocument}>New</button>
       </div>

@@ -10,9 +10,9 @@ export default function main(programType: string, input: string) : ReactElement 
     if (programType === "score") { 
 
       const result = grammar.tryParse(input)
-      //console.log(result)
+      console.log(result)
  
-      const [options, measures] = result
+      const [options, variables, measures] = result
 
       const svg = interpret(options, measures)
 

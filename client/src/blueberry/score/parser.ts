@@ -1,4 +1,4 @@
-import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure, Pitch, isPitch } from "./types"
+import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure, Variable } from "./types"
 const P = require("parsimmon")
 
 const word = P.takeWhile(input => {
@@ -7,6 +7,8 @@ const word = P.takeWhile(input => {
 })
   .desc("a word")
 
+
+const singleSpace = P.string(" ")
 const spaces = P.alt(P.string(" "), P.string("\t"), P.string("\n"), P.string("\r"), P.string("\r\n")).many()
   .desc("spaces or newlines")
 const regularSpace = P.alt(P.string(" "), P.string("\t"))
@@ -47,6 +49,32 @@ const singleOption = P.seqMap(optionIdentifier, restOfLine, P.newline, function(
 const singleOptionBetweenMeasures = singleOption.skip(spaces)
 
 const option = singleOption.many().skip(spaces)
+
+
+// *********** PARSE VARIABLES ***************
+
+/* Variables take the form:
+var test = "variable started
+same var continued"
+*/
+const varIdentifier = P.string("var").skip(singleSpace)
+const varKey = word.skip(singleSpace).skip(P.string("=")).skip(singleSpace).skip(P.string('"'))
+const varReplacement = P.takeWhile(input => {
+  return (input !== '"')
+}).map(result => {
+  return result.trim()
+}).skip(P.string('"'))
+const variable = P.seqMap(varIdentifier, varKey, varReplacement, (_, k, r) => {
+  const v : Variable = {
+    kind: "variable",
+    key: k,
+    replacement: r
+  }
+  return v
+})
+
+const singleVariable = variable.skip(spaces)
+const variables = singleVariable.many().skip(spaces)
 
 
 // *********** PARSE MEASURES ***************
@@ -124,7 +152,7 @@ const x8 = P.string("8").map(Number)
 const x4 = P.string("4").map(Number)
 const x2 = P.string("2").map(Number)
 const x1 = P.string("1").map(Number)
-const x0 = P.string("0").map(Number)
+const x0 = P.string("0").map(Number) 
 
 const dot = P.string(".").many().map(x => x.length)
 
@@ -330,8 +358,8 @@ const measure = hiddenCommentEmptyLines
 const measureOrOption = P.alt(measure, singleOptionBetweenMeasures).many()
 
 
-const expr = P.seqMap(option, measureOrOption, spaces, (o, m, s) => {
-  return [o, m]
+const expr = P.seqMap(spaces, option, variables, measureOrOption, spaces, (_, o, v, m, s) => {
+  return [o, v, m]
 })
 
 export const grammar = expr.skip(P.eof)

@@ -1,7 +1,7 @@
 import jsPDF from "jspdf"
 
 // Download as a pdf
-export default async function downloadPDF(previewRef) {
+export default async function downloadPDF(previewRef, title) { 
 
     try {
 
@@ -66,7 +66,7 @@ export default async function downloadPDF(previewRef) {
 
       }))
 
-      doc.save("test.pdf")
+      doc.save(`${title}.pdf`)
 
     } catch(e) {
       console.log(e)

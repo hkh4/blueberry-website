@@ -84,7 +84,7 @@ const deleteDocument = async (req, res, next) => {
     try {
 
         const { id } = req.params
-        const document = await Document.findOneAndDelete({_id: id})
+        const document = await Document.findOneAndDelete({_id: id}) 
 
         // If nothing is returned, then it failed to delete
         if (!document) {

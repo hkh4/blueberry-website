@@ -12,9 +12,9 @@ export const documentsReducer = (state, action) => {
             return {
                 documents: [action.payload, ...state.documents]
             }
-        case 'DELETE_WORKOUT':
+        case 'DELETE_DOCUMENT':
             return {
-                documents: state.documens.filter(d => d._id !== action.payload._id)
+                documents: state.documents.filter(d => d._id !== action.payload.id)
             }
         default:
             return state

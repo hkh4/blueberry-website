@@ -6,7 +6,7 @@ const {
     deleteDocument,
     updateDocument,
     shareDocument
-} = require("../controllers/documentController") 
+} = require("../controllers/documentController")
 
 const requireAuth = require("./../middleware/requireAuth")
 

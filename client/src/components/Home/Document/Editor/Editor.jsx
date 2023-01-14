@@ -219,13 +219,14 @@ function Editor({
   return (
     <>
     <div className="editor">
+      <canvas height="7920" width="6120" id="canvas"></canvas>
       <input maxLength="50" value={title} onChange={e => setTitle(e.target.value)} type="text" />
       <div id="container" ref={wrapperRef}></div>
 
       <div className="editor-buttons">
         <button className="button compile" onClick={compile}>Compile</button>
         <button className="button share" onClick={e => setShareOpen(true)}>Share</button>
-        <button className="button download" onClick={() => downloadPDF(previewRef)}>Download PDF</button>
+        <button className="button download" onClick={() => downloadPDF(previewRef, title)}>Download PDF</button>
         <button className="button save" onClick={save}>Save</button>
       </div>
 

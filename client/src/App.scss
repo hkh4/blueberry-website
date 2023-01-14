@@ -49,14 +49,27 @@
 
 // ***************** Home
 
-#home {
+.documents-table {
+  width: 100%;
 
-  .documents {
-    display: flex;
-    flex-direction: column;
+  th {
+    text-align: left;
   }
 
-  .link {
-    display: block;
+  .documents-table-title {
+    width: 50%;
+    text-overflow: ellipsis;
   }
+
+  .documents-table-modified {
+    width: 25%;
+  }
+
+  .documents-table-actions {
+    width: 25%;
+  }
+}
+
+.link {
+  display: block;
 }

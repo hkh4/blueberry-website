@@ -5,7 +5,7 @@ export type Ints = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 1
  
 // function to check if an integer is an "ints"
 export function isInts(i: Ints | number) : i is Ints {
-  return ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30].includes(i))
+  return ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30].includes(i)) 
 }
 
 // ******* Pitch
@@ -128,6 +128,13 @@ export type Tuplet = {
 export type Comment = {
   kind: "comment",
   comment: string
+}
+
+// Type for variable definitions
+export type Variable = {
+  kind: "variable",
+  key: string,
+  replacement: string
 }
 
 // NOTE: in this version, there are no hidden comments. They are just ignored when parsed
