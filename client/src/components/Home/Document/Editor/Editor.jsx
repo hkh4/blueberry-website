@@ -73,7 +73,7 @@ function Editor({
       console.log("before")
 
       // Patch request to share
-      const response = await axios.patch(`/api/documents/share/${documentID}`, {
+      await axios.patch(`/api/documents/share/${documentID}`, {
         email: shareEmail
       }, {
         headers: {
@@ -81,13 +81,7 @@ function Editor({
         }
       })
 
-      console.log(response)
-
-      console.log("after")
-
       setShareOpen(false)
-
-      console.log(shareOpen)
       
 
     } catch(e) {
@@ -122,7 +116,7 @@ function Editor({
   // Set up socket.io
   useEffect(() => {
 
-    const ENDPOINT = process.env.NODE_ENV == "production" ? 'https://blueberry-website.herokuapp.com' : 'http://localhost:5000'
+    const ENDPOINT = process.env.NODE_ENV === "production" ? 'https://blueberry-website.herokuapp.com' : 'http://localhost:5000'
 
     const s = io(ENDPOINT) 
     setSocket(s)
@@ -182,6 +176,9 @@ function Editor({
 
         // Get the document data
         const response = await axios.get(`/api/documents/${documentID}`, {
+          cancelToken: new CancelToken(c => {
+            cancel = c
+          }),
           headers: {
             "Authorization" : `Bearer ${user.token}`
           }

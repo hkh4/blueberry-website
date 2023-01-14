@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import blueberry from "./../../../../blueberry/program.tsx"
 
-function Preview({
+function Preview({ 
   input,
   svg,
   setSVG,

@@ -5,7 +5,7 @@ import axios from "axios";
 
 import { useDocumentsContext } from "./../../../hooks/useDocumentsContext";
 import { useAuthContext } from "./../../../hooks/useAuthContext"
-import errorHandling from "../../../helpers/errorHandling";
+import errorHandling from "../../../helpers/errorHandling"; 
 
 function Landing() {
     

@@ -123,8 +123,8 @@ const updateDocument = async (req, res, next) => {
         res.status(200).json(document)
 
     } catch(e) {
-        next(e)
-    }
+        next(e)  
+    } 
 }
 
 // Share a document with another user
