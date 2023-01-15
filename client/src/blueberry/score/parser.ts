@@ -1,4 +1,4 @@
-import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure, Variable } from "./types"
+import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure, ParserNote, Variable, UseVariable, Pitch, EitherProperty, MultiProperty, Property } from "./types"
 const P = require("parsimmon")
 
 const word = P.takeWhile(input => {
@@ -24,8 +24,8 @@ const emptyLines = spacesAndNewline.many()
 
 const restOfLine = P.takeWhile(input => {
   return (input !== '\n' && input !== '\r' && input !== '\r\n')
-}).map(result => {
-  return result.trim()
+}).map((r: string) => {
+  return r.trim()
 })
 
 
@@ -50,31 +50,6 @@ const singleOptionBetweenMeasures = singleOption.skip(spaces)
 
 const option = singleOption.many().skip(spaces)
 
-
-// *********** PARSE VARIABLES ***************
-
-/* Variables take the form:
-var test = "variable started
-same var continued"
-*/
-const varIdentifier = P.string("var").skip(singleSpace)
-const varKey = word.skip(singleSpace).skip(P.string("=")).skip(singleSpace).skip(P.string('"'))
-const varReplacement = P.takeWhile(input => {
-  return (input !== '"')
-}).map(result => {
-  return result.trim()
-}).skip(P.string('"'))
-const variable = P.seqMap(varIdentifier, varKey, varReplacement, (_, k, r) => {
-  const v : Variable = {
-    kind: "variable",
-    key: k,
-    replacement: r
-  }
-  return v
-})
-
-const singleVariable = variable.skip(spaces)
-const variables = singleVariable.many().skip(spaces)
 
 
 // *********** PARSE MEASURES ***************
@@ -108,9 +83,10 @@ const d = P.string("d")
 const e = P.string("e")
 const f = P.string("f")
 const g = P.string("g")
-const noPitch = P.string("x").map(x => "nopitch")
+const noPitch = P.string("x").map((x: string) => "nopitch")
 
 const pitch = P.alt(csharp, cflat, cnat, dsharp, dflat, dnat, esharp, eflat, enat, fsharp, fflat, fnat, gsharp, gflat, gnat, asharp, aflat, anat, bsharp, bflat, bnat, a, b, c, d, e, f, g, noPitch)
+  .map((p: Pitch) => p)
   .desc("one of the following valid pitches: a, a#, ab, an, b, b#, bb, bn, c, c#, cb, cn, d, d#, db, dn, e, e#, eb, en, f, f#, fb, fn, g, g#, gb, gn, x")
 
 // Properties
@@ -135,12 +111,16 @@ const pl2 = P.string("pl2")
 
 const slash = P.string("/")
 const eitherProperty = slash.then(P.alt(par, sld, sli, slu, tie, har, upf, ham))
+  .map((e: EitherProperty) => e)
   .desc("one of the following properties: par, sld, sli, slu, tie, har, ^, ham")
+
 const multiProperty = slash.then(P.alt(gra, stu, std, plu, pld, sls, sle, plm, pl1, pl2))
+  .map((m: MultiProperty) => m)
   .desc("one of the following properties: gra, stu, std, plu, pld, sls, sle, plm, pl1, pl2")
 const eitherProperties = eitherProperty.many()
 const multiProperties = multiProperty.many()
 const anyProperty = slash.then(P.alt(par, sld, sli, slu, tie, har, upf, ham, gra, stu, std, plu, pld, sls, sle, plm, pl1, pl2))
+  .map((p: Property) => p)
   .desc("one of the following properties: par, sld, sli, slu, tie, har, ^, ham, gra, stu, std, plu, pld, sls, sle, plm, pl1, pl2")
 const anyProperties = anyProperty.many()
 
@@ -174,7 +154,7 @@ const measureNumber = P.seqMap(number, P.string(":"), spacesAndNewline, function
 
 // Rests
 const restSimple = P.string("r")
-  .map(r => {
+  .map(() => {
     const x: RestSimple = {
       kind: "simple",
       simpleKind: "restSimple"
@@ -184,7 +164,7 @@ const restSimple = P.string("r")
 
 const restComplex = P.string("r")
   .then(rhythm)
-  .map(rh => {
+  .map((rh: Rhythm) => {
     const x: RestComplex = {
       kind: "complex",
       complexKind: "restComplex",
@@ -201,7 +181,7 @@ const anyRest = P.alt(restComplex, restSimple)
 // *** Single notes
 
 // Only allow strings 1-6
-const stringNum = P.test(c => {
+const stringNum = P.test((c: string) => {
   return ["1", "2", "3", "4", "5", "6"].includes(c)
 })
   .map(Number)
@@ -286,7 +266,7 @@ const tupletBody = tupletNotes
 const graceOnly = P.string("/gra")
   .fallback("")
 
-const tuplet = P.seqMap(tupletBody, rhythm, graceOnly, (t, r, g) => {
+const tuplet = P.seqMap(tupletBody, rhythm, graceOnly, (t: ParserNote[], r: Rhythm, g) => {
   const x: Tuplet = {
     kind: "tuplet",
     notes: t,
@@ -329,11 +309,24 @@ const hiddenCommentEmptyLines = P.string("%")
   .skip(emptyLines)
 
 
+const useVarWord = P.takeWhile(c => {
+  const notAllowed = [' ', '\n', '\r', '\t', '\r\n', ']']
+  return !notAllowed.includes(c)
+})
+const useVar = useVarWord
+  .wrap(P.string("["), P.string("]"))
+  .map(r => {
+    const v : UseVariable = {
+      kind: "variable",
+      key: r
+    }
+    return v
+  })
 
 
 // *********** Notes and measures
 const note = emptySpaces1
-  .then(P.alt(comment, hiddenComment, tuplet, anyRest, group, singleNote))
+  .then(P.alt(comment, hiddenComment, tuplet, anyRest, useVar, group, singleNote))
   .skip(emptyLines)
 
 const multipleNotesInMeasure = note.atLeast(1)
@@ -342,7 +335,7 @@ const measure = hiddenCommentEmptyLines
   .atMost(1)
   .then(P.seqMap(measureNumber, multipleNotesInMeasure, spaces, (num, notes, spaces) => {
     // get rid of hidden comments
-    const notesNoHiddenComments = notes.filter(n => n !== "%")
+    const notesNoHiddenComments : ParserNote[] = notes.filter(n => n !== "%")
     const x : ParserMeasure = {
       kind: "parserMeasure",
       measureNumber: num,
@@ -350,6 +343,38 @@ const measure = hiddenCommentEmptyLines
     }
     return x
   }))
+
+
+
+// *********** PARSE VARIABLES ***************
+// This section is down here because it needs the note parser definitions
+
+const varIdentifier = P.string("var")
+  .skip(singleSpace)
+
+const varKey = word
+  .skip(singleSpace)
+  .skip(P.string("="))
+  .skip(singleSpace)
+
+const insideVarNotes = P.alt(tuplet, anyRest, group, singleNote)
+const insideVarSpace = insideVarNotes.trim(spaces)
+const insideVar = insideVarSpace.atLeast(1)
+
+const varReplacement = insideVar
+  .trim(P.string('"'))
+
+const singleVariable = P.seqMap(varIdentifier, varKey, varReplacement, spaces, (_, key, rep, s) => {
+  const v : Variable = {
+    kind: "variable",
+    key,
+    replacement: rep
+  }
+  return v
+})
+
+const variables = singleVariable.many().trim(spaces)
+
 
 
 // ******** EXPR

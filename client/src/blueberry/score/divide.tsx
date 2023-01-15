@@ -1,4 +1,4 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts, AllVariables, UseVariable } from "./types"
 import { evalInnerOption } from "./options"
 import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth } from "./constants"
 
@@ -271,7 +271,7 @@ export function parseSimple(measureNumber: number, note: Simple, last: boolean, 
 
   }
 
-  return [element, isGrace]
+  return [element, isGrace] 
 
 }
 
@@ -1016,15 +1016,29 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 /* Evaluates one measure
 1. m: ParserMeasure to be evaluated
 2. optionsR: contains options information that will be incorporated into the Measure
-3. changes: whether there are time, key, or capo changes. Form is { key: boolean, time: boolean, capo: boolean }
-4. defaultRhythm: rhythm to be used if none is given on a note
+3. variables: AllVariables object containing all variables with keys and replacements
+4. changes: whether there are time, key, or capo changes. Form is { key: boolean, time: boolean, capo: boolean }
+5. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new Measure
 */
-export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, changes, defaultRhythm: [RhythmNumber, number]) : Measure {
+export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables: AllVariables, changes, defaultRhythm: [RhythmNumber, number]) : Measure {
 
-  const notes = m.notes
+  let originalNotes = m.notes
   const measureNumber = m.measureNumber
   const [numberOfBeats, baseBeat] = optionsR.time
+
+  // First, replace all UseVariable notes with their replacements
+  let notes : ParserNote[] = []
+  for (const note of originalNotes) {
+    
+    if (note.kind === "variable") {
+      // get replacement
+      const replacement = variables[note.key]
+      notes.push(...replacement)
+    } else {
+      notes.push(note)
+    }
+  }
 
   // First, create a version with no comments. It will be used later when we need to see if a note is the last note of the measure
   const notesWithoutComments = notes.filter(n => n.kind !== "comment")
@@ -1083,11 +1097,12 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, changes, 
 
 /* Goes through the ParserMeasures one by one, and turns them into Measures, with all the required information for the measure
 1. parserMeasures: list of ParserMeasure
-2. optionsR: OptionsRecord with all the options information
-3. defaultRhythm: for notes that don't have rhythms
+2. variables: AllVariables object containing all variables with keys and replacements
+3. optionsR: OptionsRecord with all the options information
+4. defaultRhythm: for notes that don't have rhythms
 returns the list of parsed Measures
 */
-export function evalMeasures(elements: Expr[], optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : Measure[] {
+export function evalMeasures(elements: Expr[], variables: AllVariables, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : Measure[] {
 
   let measures : Measure[] = []
 
@@ -1116,7 +1131,7 @@ export function evalMeasures(elements: Expr[], optionsR: OptionsRecord, defaultR
       case "parserMeasure":
 
         // Call the helper
-        const newMeasure = evalMeasure(p, optionsR, changes, defaultRhythm)
+        const newMeasure = evalMeasure(p, optionsR, variables, changes, defaultRhythm)
 
         measures.push(newMeasure)
         changes = {

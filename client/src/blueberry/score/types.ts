@@ -134,12 +134,17 @@ export type Comment = {
 export type Variable = {
   kind: "variable",
   key: string,
-  replacement: string
+  replacement: [Simple | Complex | Group | Tuplet]
+}
+
+export type UseVariable = {
+  kind: "variable",
+  key: string
 }
 
 // NOTE: in this version, there are no hidden comments. They are just ignored when parsed
 
-export type ParserNote = Simple | Complex | Group | Tuplet | Comment
+export type ParserNote = Simple | Complex | Group | Tuplet | Comment | UseVariable
 
 
 // ******* Expr
@@ -158,6 +163,10 @@ export type ParserMeasure = {
 export type Expr = ScoreOption | ParserMeasure
 
 // ****************************** Interpreter export types
+
+export type AllVariables = {
+  [index: string]: [Simple | Complex | Group | Tuplet]
+}
 
 export type OptionsRecord = {
   time: [number, RhythmNumber],
