@@ -42,6 +42,7 @@ function Landing() {
         });
 
         if (response.status === 200 && mounted) {
+          console.log(response.data)
           dispatch({ type: "SET_DOCUMENTS", payload: response.data });
         }
         setLoading(false)
@@ -128,6 +129,10 @@ function Landing() {
               </tr>
             
               {documents.map((d) => {
+
+                let date = new Date(d.updatedAt)
+                let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
+
                 return (
                   <tr key={d._id}>
                     <td>
@@ -136,7 +141,7 @@ function Landing() {
                         to={`/documents/${d._id}`}
                       >{`${d.title}`}</Link>
                     </td>
-                    <td>uhhh</td>
+                    <td>{`${dateString}`}</td>
                     <td>
                       <span onClick={e => deleteDocument(d._id)}>
                         <FontAwesomeIcon icon={faTrashCan} />
