@@ -26,7 +26,7 @@
     "ts-jest": "^29.0.3",
     "uuid": "^9.0.0"
   },
-  "proxy": "http://localhost:5000",
+  "proxy": "http://localhost:6000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

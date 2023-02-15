@@ -46,6 +46,6 @@ app.get("*", (req,res) => {
   res.sendFile(path.join(__dirname, "client/build", "index.html"))
 })
 
-http.listen(process.env.PORT || 5000, () => {
-   console.log("Running on port 5000");
+http.listen(process.env.PORT || 6000, () => {
+   console.log("Running on port 6000");
 })
