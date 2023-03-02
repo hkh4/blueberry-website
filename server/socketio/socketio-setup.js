@@ -1,7 +1,7 @@
 const findOrCreateDocument = require("./../mongodb/helpers/findOrCreateDocument")
 const Document = require("./../mongodb/models/Document")
 
-module.exports = function socketIO_setup(http) {
+module.exports = function socketIO_setup(http) { 
 
     const io = require('socket.io')(http, {
         cors: {

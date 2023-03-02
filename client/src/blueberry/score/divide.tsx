@@ -1,4 +1,4 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, isEither, NormalGuitarNote, X, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts, AllVariables, UseVariable } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts, AllVariables } from "./types"
 import { evalInnerOption } from "./options"
 import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth } from "./constants"
 
@@ -890,7 +890,9 @@ function evalNote(measureNumber: number, note: ParserNote, baseBeat: RhythmNumbe
 7. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the list of new Elements, and the total width of all the Elements
 */
-function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWithoutComments: ParserNote[], baseBeat: RhythmNumber, numberOfBeats: number, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element[], number] {
+function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWithoutComments: ParserNote[], baseBeat: RhythmNumber, numberOfBeats: number, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : [Element[], number, [RhythmNumber, number]] {
+
+  let newDefaultRhythm : [RhythmNumber, number] = defaultRhythm
 
   // The final list of elements to be returned, once evaluated
   let elements : Element[] = []
@@ -936,11 +938,11 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
     // if it's the last note
     if (realNoteCount === numberOfRealNotes) {
 
-      [newNote, nextStart, isGrace, defaultRhythm] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, true, optionsR, defaultRhythm)
+      [newNote, nextStart, isGrace, newDefaultRhythm] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, true, optionsR, newDefaultRhythm)
 
     } else {
       // not the last note
-      [newNote, nextStart, isGrace, defaultRhythm] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, false, optionsR, defaultRhythm)
+      [newNote, nextStart, isGrace, newDefaultRhythm] = evalNote(measureNumber, note, baseBeat, numberOfBeats, nextStart, false, optionsR, newDefaultRhythm)
     }
 
     // increment how many notes have been seen
@@ -1006,7 +1008,7 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 
   }
 
-  return [elements, totalWidth]
+  return [elements, totalWidth, newDefaultRhythm]
 
 }
 
@@ -1021,11 +1023,12 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 5. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new Measure
 */
-export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables: AllVariables, changes, defaultRhythm: [RhythmNumber, number]) : Measure {
+export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables: AllVariables, changes, defaultRhythm: [RhythmNumber, number]) : [Measure, [RhythmNumber, number]] {
 
   let originalNotes = m.notes
   const measureNumber = m.measureNumber
   const [numberOfBeats, baseBeat] = optionsR.time
+  let newDefaultRhythm : [RhythmNumber, number] = defaultRhythm
 
   // First, replace all UseVariable notes with their replacements
   let notes : ParserNote[] = []
@@ -1044,7 +1047,9 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
   const notesWithoutComments = notes.filter(n => n.kind !== "comment")
 
   // Call the helper. Returns the new elements, and the total width of the measure
-  let [elements, width] = evalMeasureHelper(measureNumber, notes, notesWithoutComments, baseBeat, numberOfBeats, optionsR, defaultRhythm)
+  let elements : Element[]
+  let width : number
+  [elements, width, newDefaultRhythm] = evalMeasureHelper(measureNumber, notes, notesWithoutComments, baseBeat, numberOfBeats, optionsR, newDefaultRhythm)
 
   // Add empty space at the beginning
   elements.unshift(emptyElement)
@@ -1089,7 +1094,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
     changes: changes
   }
 
-  return measure
+  return [measure, newDefaultRhythm]
 
 }
 
@@ -1105,6 +1110,7 @@ returns the list of parsed Measures
 export function evalMeasures(elements: Expr[], variables: AllVariables, optionsR: OptionsRecord, defaultRhythm: [RhythmNumber, number]) : Measure[] {
 
   let measures : Measure[] = []
+  let newDefaultRhythm : [RhythmNumber, number] = defaultRhythm
 
   let changes = {
     time: false,
@@ -1131,7 +1137,8 @@ export function evalMeasures(elements: Expr[], variables: AllVariables, optionsR
       case "parserMeasure":
 
         // Call the helper
-        const newMeasure = evalMeasure(p, optionsR, variables, changes, defaultRhythm)
+        let newMeasure : Measure
+        [newMeasure, newDefaultRhythm] = evalMeasure(p, optionsR, variables, changes, newDefaultRhythm)
 
         measures.push(newMeasure)
         changes = {
