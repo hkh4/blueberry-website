@@ -164,162 +164,162 @@ export const defs = <defs>
 
   {/* Fret numbers */}
   <g id="fretx">
-    <path className="fret-number-square" fill="white" d="m -0.2 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">X</text>
   </g>
 
-  <g id="fret0">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+  <g id="fret0"> 
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">0</text>
   </g>
 
   <g id="fret1">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">1</text>
   </g>
 
   <g id="fret2">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">2</text>
   </g>
 
   <g id="fret3">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">3</text>
   </g>
 
   <g id="fret4">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">4</text>
   </g>
 
   <g id="fret5">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">5</text>
   </g>
 
   <g id="fret6">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">6</text>
   </g>
 
   <g id="fret7">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">7</text>
   </g>
 
   <g id="fret8">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">8</text>
   </g>
 
   <g id="fret9">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4 0 l 0 4 l -4 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 4.5 0 l 0 4.5 l -4.5 0 l 0 -4.5" />
     <text className="fret-number">9</text>
   </g>
 
   <g id="fret10">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.4 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">10</text>
   </g>
 
   <g id="fret11">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 6.6 0 l 0 4 l -6.6 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 6.8 0 l 0 4 l -6.8 0 l 0 -4" />
     <text className="fret-number">11</text>
   </g>
 
   <g id="fret12">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">12</text>
   </g>
 
   <g id="fret13">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">13</text>
   </g>
 
   <g id="fret14">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">14</text>
   </g>
 
   <g id="fret15">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">15</text>
   </g>
 
   <g id="fret16">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">16</text>
   </g>
 
   <g id="fret17">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">17</text>
   </g>
 
   <g id="fret18">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">18</text>
   </g>
 
   <g id="fret19">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">19</text>
   </g>
 
   <g id="fret20">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">20</text>
   </g>
 
   <g id="fret21">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">21</text>
   </g>
 
   <g id="fret22">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">22</text>
   </g>
 
   <g id="fret23">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">23</text>
   </g>
 
   <g id="fret24">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">24</text>
   </g>
 
   <g id="fret25">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">25</text>
   </g>
 
   <g id="fret26">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">26</text>
   </g>
 
   <g id="fret27">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">27</text>
   </g>
 
   <g id="fret28">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">28</text>
   </g>
 
   <g id="fret29">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">29</text>
   </g>
 
   <g id="fret30">
-    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.3 0 l 0 4 l -7.3 0 l 0 -4" />
+    <path className="fret-number-square" fill="white" d="m -0.5 -4.5 l 7.8 0 l 0 4 l -7.8 0 l 0 -4" />
     <text className="fret-number">30</text>
   </g>
 

@@ -16,7 +16,7 @@ import { drawProperties, checkEndings } from "./properties"
 4. fret
 RETURNS code
 */
-function showNormalGuitarNote(x: number, y: number, guitarString: GuitarString, fret: number) : ReactElement {
+function showNormalGuitarNote(x: number, y: number, guitarString: GuitarString, fret: number) : ReactElement {  
 
   const newY = (y + 2) - (6 * (guitarString - 1))
 
@@ -407,7 +407,7 @@ function showRest(element: Element, x: number, y: number, width: number) : React
     case 0:
 
       code = <>
-        <use href="#halfwholerest" x={x + (width / 2) - 7} y={y - 15.8} />
+        <use href="#halfwholerest" x={x - emptyElementWidth + (width / 2) - 1} y={y - 15.8} />
       </>
       break;
     case 1:
@@ -545,7 +545,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
       }
       break;
     case "empty":
-      newX += 5
+      newX += emptyElementWidth
       newElement = {
         ...element,
         location: [x,y]
@@ -583,7 +583,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
     case "barline":
 
       code = <>
-        <path className="measure-barline" d={`M ${x - 5} ${y + 0.2} l 0 -30.4`} />
+        <path className="measure-barline" d={`M ${x} ${y + 0.2} l 0 -30.4`} />
       </>
       newX += (scale * element.width)
 
@@ -618,7 +618,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
 4. scale: ratio that the width of all elements should be changed by
 RETURNS the updated measure, the code, and the width of the measure
 */
-function showMeasure(measure: Measure, x: number, y: number, scale: number) : [Measure, ReactElement, number] {
+function showMeasure(measure: Measure, x: number, y: number, scale: number) : [Measure, ReactElement, number, number] {
 
   const elements : Element[] = measure.elements
 
@@ -626,7 +626,7 @@ function showMeasure(measure: Measure, x: number, y: number, scale: number) : [M
   const newWidth = measure.width * scale
 
   // since the empty space at the beginning needs to be constant size, recalculate the scale based on that
-  const insideScale = newWidth / (measure.width - emptyElementWidth)
+  const insideScale = (newWidth - emptyElementWidth) / (measure.width - emptyElementWidth)
 
   let newElement : Element
   let code : ReactElement
@@ -672,7 +672,7 @@ function showMeasure(measure: Measure, x: number, y: number, scale: number) : [M
 
   </>
 
-  return [newMeasure, finalCode, newWidth]
+  return [newMeasure, finalCode, newWidth, newX]
 
 }
 
@@ -770,9 +770,8 @@ function showLine(line: Line) : [Line, ReactElement] {
     {
       line.measures.map((m, index) => {
 
-        [newMeasure, code, widthOfMeasure] = showMeasure(m, newX, staffY, scale)
+        [newMeasure, code, widthOfMeasure, newX] = showMeasure(m, newX, staffY, scale)
         updatedMeasures.push(newMeasure)
-        newX += widthOfMeasure
 
         return <Fragment key={index}>
           {code}

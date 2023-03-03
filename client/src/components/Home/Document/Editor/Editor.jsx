@@ -189,6 +189,7 @@ function Editor({
           // Set state
           setTitle(response.data.title)
           quill.setContents(response.data.data)
+          quill.history.clear()
 
           // Use this document's id to join a room
           socket.emit("join-document-room", documentID)
@@ -213,7 +214,7 @@ function Editor({
       if (cancel) cancel()
     }
 
-  }, [socket, quill, documentID, user])
+  }, [socket, quill, documentID, user]) 
 
 
   return (

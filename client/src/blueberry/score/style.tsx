@@ -58,11 +58,11 @@ path.fancy-line-curl {
 }
 
 .fret-number {
-  font-size: 5.5px;
+  font-size: 6px;
 }
 
 .fret-number-grace {
-  font-size: 4px;
+  font-size: 4.5px;
 }
 
 .fret-number-square {

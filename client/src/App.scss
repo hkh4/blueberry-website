@@ -13,15 +13,24 @@
 }
 
 .editor {
-  height: 100%;
+  height: 90vh;
   width: 40%;
   display: flex;
   flex-direction: column;
 
   #container {
-    height: 100%;
+    height: 90%;
+    position: relative;
     display: flex;
     flex-direction: column;
+
+    .ql-toolbar.ql-snow {
+      height: 42px;
+    }
+
+    .ql-container.ql-snow {
+      overflow: scroll;
+    }
   }
 
   .compile {
@@ -37,7 +46,8 @@
   }
 
   .editor-buttons {
-    height: 30px;
+    height: 10%;
+    position: relative;
   }
 }
 
