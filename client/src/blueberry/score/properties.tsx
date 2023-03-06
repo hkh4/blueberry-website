@@ -4,7 +4,7 @@ import { lineEndX } from "./constants"
 
 
 /* Draw hammers
-NOTE: at least for now, the logic for a hammer is identical to a tie
+NOTE: at least for now, the logic for a hammer is identical to a tie 
 1. currentString: which guitar string this note is on
 2. eProperties is the list of EitherProperties
 3. fret is the fret of the current note (-1 if an X)
@@ -33,7 +33,7 @@ function drawHammer(currentString: number, eProperties: EitherProperty[], fret: 
   if (valid) {
 
     // Set default coordinates
-    let dx1 = oldX + 3.6
+    let dx1 = oldX + 4
     let dx2 = x - 0.7
     let dy = yCoord - 3.5
     let mid = (dx2 - dx1) * 0.3
@@ -54,7 +54,7 @@ function drawHammer(currentString: number, eProperties: EitherProperty[], fret: 
     }
 
     if (oldFret >= 10) {
-      dx1 += 1.4
+      dx1 += 1.5
     }
 
     if (fret >= 10) {
@@ -117,9 +117,9 @@ function drawHarmonics(eProperties: EitherProperty[], fret: number, x: number, y
 
     } else {
 
-      let x1 = x - 3.7
+      let x1 = x - 3.9
       let y = yCoord - 2.3
-      let x2 = x + 6.8
+      let x2 = x + 7
       let xChange = 3.5
       let yChange = 1.5
 
@@ -174,9 +174,9 @@ function drawParens(eProperties: EitherProperty[], fret: number, x: number, yCoo
       </>
     } else {
 
-      let x1 = x - 1
+      let x1 = x - 1.2
       let y = yCoord - 0.8
-      let x2 = x + 4
+      let x2 = x + 4.4
 
       if (fret >= 10) {
         x1 -= 1
@@ -215,7 +215,7 @@ function drawSlideDown(eProperties: EitherProperty[], fret: number, x: number, y
 
   if (sld) {
 
-    let x0 = x - 5.5
+    let x0 = x - 5.7
     let y0 = yCoord - 3.8
 
     if (isGrace) {
@@ -229,7 +229,7 @@ function drawSlideDown(eProperties: EitherProperty[], fret: number, x: number, y
       x -= 1 
     }
 
-    sldCode = <path className="slide" d={`M ${x0} ${y0} L ${x - 0.7} ${yCoord - 0.5}`} />  
+    sldCode = <path className="slide" d={`M ${x0} ${y0} L ${x - 0.9} ${yCoord - 0.5}`} />  
 
   }
 
@@ -258,7 +258,7 @@ function drawSlideUp(eProperties: EitherProperty[], fret: number, x: number, yCo
   if (slu) {
 
     let x0 = x - 5.5
-    let y0 = yCoord - 0.7
+    let y0 = yCoord - 0.9
 
     if (isGrace) {
       x0 += 0.5
@@ -271,7 +271,7 @@ function drawSlideUp(eProperties: EitherProperty[], fret: number, x: number, yCo
       x -= 1 
     }
 
-    sluCode = <path className="slide" d={`M ${x0} ${y0} L ${x - 0.7} ${yCoord - 3.8}`} /> 
+    sluCode = <path className="slide" d={`M ${x0} ${y0} L ${x - 0.9} ${yCoord - 3.8}`} /> 
 
   }
 
@@ -311,8 +311,8 @@ function drawTie(currentString: number, eProperties: EitherProperty[], fret: num
   if (valid) {
 
     // Set default coordinates
-    let dx1 = oldX + 3.6
-    let dx2 = x - 0.7
+    let dx1 = oldX + 4
+    let dx2 = x - 0.8
     let dy = yCoord - 3.5
     let mid = (dx2 - dx1) * 0.3
     let yRise = 2.1
@@ -403,8 +403,8 @@ function drawSlide(currentString: number, eProperties: EitherProperty[], fret: n
     const direction : "up" | "down" = oldFret <= fret ? "up" : "down"
 
     // Set default x coordinates, which are the same for up and down slides
-    let dx1 = oldX + 3.6
-    let dx2 = x - 0.8
+    let dx1 = oldX + 4
+    let dx2 = x - 1
     let dy1;
     let dy2;
 
@@ -815,7 +815,7 @@ function drawPluckDown(isGrace: boolean, x: number, y: number, mProperties: Mult
 
     } else {
 
-      x -= 2.2
+      x -= 2.6
       y = y + 2 - start
       let yArrow = y - ((height - 1) * 6) + 0.3
 
@@ -897,7 +897,7 @@ function drawPluckUp(isGrace: boolean, x: number, y: number, mProperties: MultiP
 
     } else {
 
-      x -= 2.2
+      x -= 2.6
       y = y + 3.5 - start
       let yArrow = y - ((height - 1) * 6) + 0.3
 
@@ -964,7 +964,7 @@ function drawStrumDown(isGrace: boolean, x: number, y: number, mProperties: Mult
 
     } else {
 
-      x -= 2.2
+      x -= 2.5
       y = y + 8 - start
       let length = (height - 1) * 6 + 4.5
       
@@ -1017,7 +1017,7 @@ function drawStrumUp(isGrace: boolean, x: number, y: number, mProperties: MultiP
 
     } else {
 
-      x -= 2.2
+      x -= 2.5
       y = y + 8.5 - start
       let length = (height - 1) * 6 + 4.5
       
