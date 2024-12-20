@@ -753,7 +753,7 @@ export function beam(elements: Element[], lastLocation: [number, number], lastRh
   } else if ([8,16,32,64].includes(timeBottom)) {
 
     // If the number of beats is even but NOT a multiple of 3, each beat is its own group
-    if (timeTop % 2 === 0) {
+    if (timeTop % 2 === 0 && timeTop % 3 !== 0) {
 
       timeKey = Array.from({length: timeTop}, (_, i) => [i+1])
 
