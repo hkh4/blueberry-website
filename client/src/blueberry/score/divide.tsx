@@ -1239,17 +1239,15 @@ export function divideLines(measures: Measure[]) : Line[] {
     if (totalWidth > widthToCompare) {
 
       // Create the new line
-      const newLine : Line = {
+      let newLine : Line = {
         lineNumber: lines.length + 1,
         measures: measuresInCurrentLine,
         originalWidth: totalWidth - m.width,
         finalWidth: widthToCompare,
         start: [0.0,0.0] // to be figured out with pages are divided
       }
-
-      const lineWithEmptyMeasures = addEmptyMeasures(newLine)
-
-      lines.push(lineWithEmptyMeasures)
+      
+      lines.push(newLine)
 
       measuresInCurrentLine = [m]
       totalWidth = m.width
