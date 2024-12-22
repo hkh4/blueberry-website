@@ -610,6 +610,8 @@ export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, 
 
   const newDefaultRhythm : [RhythmNumber, number] = tupletRhythm
 
+  console.log([tupletElement, isGraceTuplet, newDefaultRhythm])
+
   return [tupletElement, isGraceTuplet, newDefaultRhythm]
 
 }
@@ -913,6 +915,10 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
   let realNoteCount = 1
   const numberOfRealNotes = notesWithoutComments.length
 
+  // if a comment was placed before a note, hold it here and attach it to the next note
+  let commentHolder;
+  let addExtraComment = false
+
   for (let i = 0; i < notes.length; i++) {
 
     const note = notes[i]
@@ -922,9 +928,11 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
     // First, check if this note is a comment
     if (note.kind === "comment") {
 
-      // Make sure that some note has already been parsed, since a comment can only come after a note
+      // If no note has been parsed yet, the comment will go onto the next note
       if (elements.length < 1) {
-        throw new Error(`Error in measure ${measureNumber}! A comment cannot come before the first note of a measure!`)
+        commentHolder = note
+        addExtraComment = true
+        continue
       }
 
       // Add the comment to the last note
@@ -997,6 +1005,12 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 
         }
 
+      }
+
+      // if an extra comment needs to be added to the first note
+      if (addExtraComment) {
+        newNote.comments = commentHolder.comment
+        addExtraComment = false
       }
 
       elements.push(newNote)
