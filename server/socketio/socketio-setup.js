@@ -5,7 +5,7 @@ module.exports = function socketIO_setup(http) {
 
     const io = require('socket.io')(http, {
         cors: {
-          origin: process.env.NODE_ENV == "production" ? 'https://blueberry-website.herokuapp.com' : 'http://localhost:3000',
+          origin: process.env.NODE_ENV == "production" ? 'https://blueberryguitar.com' : 'http://localhost:3000',
           methods: ['GET', 'POST']
         }
       })
