@@ -1471,7 +1471,7 @@ function checkEndTie(nextLine: Line, propertyList: PropertyList) : [ReactElement
       const yRise = 2.1
       tieCode = <path className="tie" d={`M ${x} ${y} C ${x + mid} ${y - yRise}, ${x2 - mid} ${y - yRise}, ${x2} ${y}`} />
 
-      // Get the next start valud of the next line
+      // Get the next start value of the next line
       let [nextX, nextY] = nextLine.start
       nextX += 8
       nextY = nextY + 2.3 - (6 * (currentString - 1))

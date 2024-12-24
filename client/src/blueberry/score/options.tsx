@@ -139,7 +139,7 @@ export function evalOptions(options: ScoreOption[], optionsR: OptionsRecord) : [
 
       default:
         throw new Error("Invalid option! Valid options are key, title, composer, capo, tuning, and time")
-    }
+    } 
 
   })
 
@@ -154,13 +154,16 @@ export function evalOptions(options: ScoreOption[], optionsR: OptionsRecord) : [
 2. optionsR: record of options
 3. lastMeasureNumber: the measure number of the measure that can before this option. Used for debugging
 */
-export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMeasureNumber: number) : [OptionsRecord, "time" | "key" | "capo"] {
+export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMeasureNumber: number) : [OptionsRecord, string, string] {
 
   let newOptionsR : OptionsRecord = {
     ...optionsR
   }
 
-  const { option, value } = o
+  let { option, value } = o
+
+  // Additional return value
+  let val = ""
 
   // See what type of option it is
   switch (option) {
@@ -169,7 +172,6 @@ export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMea
       if (!isKey(value)) {
         throw new Error(`Invalid key in key change after measure ${lastMeasureNumber}! Valid keys are c, cm, c#, c#m, cb, d, dm, db, d#m, e, em, eb, ebm, f, fm, f#, f#m, g, gm, gb, g#m, a, am, ab, abm, a#m, b, bm, bb, bbm`)
       }
-
       newOptionsR.key = value
       break;
 
@@ -211,10 +213,41 @@ export function evalInnerOption(o: ScoreOption, optionsR: OptionsRecord, lastMea
 
       break;
 
+    case "repeat":
+
+      if (value === "start") {
+        option = "repeatStart"
+      } else if (value === "end") {
+        option = "repeatEnd"
+      } else {
+        throw new Error(`Error in the repeat before measure ${lastMeasureNumber + 1}! Must say 'start' or 'end'`)
+      }
+
+      break;
+
+    case "ending":
+
+      // Value needs to have two values separated by a space: "start/end" followed by a number
+      let [endingType, endingString] = value.split(" ")
+
+      if (!["start", "end"].includes(endingType) || !endingString) {
+        throw new Error(`Error in the ending before measure ${lastMeasureNumber + 1}! Must say 'start' or 'end' followed by an integer`)
+      }
+
+      val = endingString
+
+      if (endingType === "start") {
+        option = "endingStart"
+      } else if (endingType === "end") {
+        option = "endingEnd"
+      }
+
+      break;
+
     default:
-      throw new Error(`Invalid option after measure ${lastMeasureNumber}! The only options that can be changed between measures are the time, key, or capo.`)
+      throw new Error(`Invalid option after measure ${lastMeasureNumber}! The only options that can be set between measures are "time", "key", "capo", "repeat" or "ending".`)
   }
 
-  return [newOptionsR, option]
+  return [newOptionsR, option, val]
 
 }

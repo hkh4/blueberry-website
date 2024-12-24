@@ -178,6 +178,18 @@ export type OptionsRecord = {
   tuningNumbers: number[]
 }
 
+export type Changes = {
+  time: boolean,
+  key: boolean,
+  capo: boolean,
+  repeatStart: boolean,
+  repeatEnd: boolean,
+  endingStart: boolean,
+  endingContinue: boolean,
+  endingEnd: boolean,
+  endingString: string
+}
+
 export type NormalGuitarNote = {
   noteKind: "normalGuitarNote",
   string: GuitarString,
@@ -232,7 +244,18 @@ export type TimeChange = {
   newTime: [number, RhythmNumber]
 }
 
-export type Notehead = SingleNote | GroupNote | TupletNote | Rest | Barline | Empty | Buffer | TimeChange
+export type Repeat = {
+  kind: "repeat",
+  start: boolean
+}
+
+export type Ending = {
+  kind: "ending",
+  endingType: "start" | "continue" | "end",
+  endingString: string
+}
+
+export type Notehead = SingleNote | GroupNote | TupletNote | Rest | Barline | Empty | Buffer | TimeChange | Repeat | Ending
 
 
 export type Element = { 

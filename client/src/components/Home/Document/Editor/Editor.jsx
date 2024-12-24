@@ -25,7 +25,7 @@ function Editor({
   const [socket, setSocket] = useState()
   const [title, setTitle] = useState("")
   const [startSaving, setStartSaving] = useState(false)
-  const [shareEmail, setShareEmail] = useState("")
+  const [shareEmail, setShareEmail] = useState("") 
   const [shareOpen, setShareOpen] = useState(false)
   const [shareError, setShareError] = useState(null)
   const {id: documentID} = useParams()

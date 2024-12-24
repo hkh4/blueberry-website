@@ -1,5 +1,5 @@
 import { Page, PropertyList, OptionsRecord, Line, Measure, Element, SingleNote, GroupNote, TupletNote, Note, NormalGuitarNote, X, Rest, GuitarString, Ints, isRhythmNumberNumber, Rhythm, PreviousPageCode } from "./types"
-import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer, emptyElementWidth } from "./constants"
+import { paperWidth, paperHeight, firstLineWidth, otherLinesWidth, firstLineBuffer, otherLinesBuffer, emptyElementWidth, repeatWidth } from "./constants"
 import { Fragment, ReactElement } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
@@ -516,7 +516,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
   let code : ReactElement = <></>
 
   // First write out the comments
-  const comment = <text className="comment" x={x + 2} y={y - 50} textAnchor="middle" >{element.comments}</text>
+  const comment = <text className="comment" x={x + 2} y={y - 50} textAnchor="middle">{element.comments}</text>
 
   const notehead = element.noteInfo
 
@@ -525,8 +525,8 @@ function showElement(element: Element, width: number, scale: number, x: number, 
     case "timeChange":
 
       code = <>
-      <use href={`#time${notehead.newTime[0]}`} x={x + 7} y={y - 23} />
-      <use href={`#time${notehead.newTime[1]}`} x={x + 7} y={y - 14.5} />
+      <use href={`#time${notehead.newTime[0]}`} x={x + 8} y={y - 23} />
+      <use href={`#time${notehead.newTime[1]}`} x={x + 8} y={y - 14.5} />
       </>
 
       newX += (scale * element.width)
@@ -586,6 +586,48 @@ function showElement(element: Element, width: number, scale: number, x: number, 
         <path className="measure-barline" d={`M ${x} ${y + 0.2} l 0 -30.4`} />
       </>
       newX += (scale * element.width)
+
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
+
+      break;
+
+    case "repeat": 
+
+      if (notehead.start) {
+
+        code = <>
+          <path className="repeat-main-bar" d={`M ${x} ${y + 0.2} l 0 -30.4`} />
+          <path className="measure-barline" d={`M ${x + 3} ${y + 0.2} l 0 -30.4`} />
+          <circle cx={x + 6.3} cy={y - 9} r="1.2" />
+          <circle cx={x + 6.3} cy={y - 21} r="1.2" />
+        </>
+
+      } else {
+
+        const repeatBuffer = repeatWidth * scale
+
+        code = <>
+          <path className="repeat-main-bar" d={`M ${x + repeatBuffer} ${y + 0.2} l 0 -30.4`} />
+          <path className="measure-barline" d={`M ${x + repeatBuffer - 3} ${y + 0.2} l 0 -30.4`} />
+          <circle cx={x + repeatBuffer - 6.3} cy={y - 9} r="1.2" />
+          <circle cx={x + repeatBuffer - 6.3} cy={y - 21} r="1.2" />
+        </>
+      }
+
+      newX += (scale * element.width)
+
+      newElement = {
+        ...element,
+        location: [x,y]
+      }
+      break;
+
+    case "ending":
+
+      // TODO
 
       newElement = {
         ...element,

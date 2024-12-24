@@ -5,9 +5,11 @@ import { Measure, Buffer, Element, Empty, Barline, Pitch, RhythmNumber } from ".
 // ******* Widths
 export const emptyElementWidth = 8
 
-export const timeChangeWidth = 10.0
+export const timeChangeWidth = 7.0
 
-export const minimumLastWidth = 13.0
+export const repeatWidth = 3.0
+
+export const minimumLastWidth = 11.0
 
 export const tupletWidthReduction = 1.3
 
@@ -49,6 +51,17 @@ export const emptyMeasureWidth = emptyMeasureRestWidth + emptyElementWidth
 
 const empty : Empty = {
   kind: "empty"
+}
+
+export const defaultElement : Element = {
+  noteInfo: empty,
+  duration: "norhythm",
+  start: 0.0,
+  width: 0,
+  lastNote: false,
+  location: [0.0, 0.0],
+  graceNotes: [],
+  comments: ""
 }
 
 export const emptyElement : Element = {

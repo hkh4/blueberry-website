@@ -4,7 +4,7 @@ import { v4 as uuidV4 } from "uuid";
 import axios from "axios";
 
 import { useDocumentsContext } from "./../../../hooks/useDocumentsContext";
-import { useAuthContext } from "./../../../hooks/useAuthContext"
+import { useAuthContext } from "./../../../hooks/useAuthContext" 
 import errorHandling from "../../../helpers/errorHandling"; 
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -42,7 +42,6 @@ function Landing() {
         });
 
         if (response.status === 200 && mounted) {
-          console.log(response.data)
           dispatch({ type: "SET_DOCUMENTS", payload: response.data });
         }
         setLoading(false)

@@ -1,6 +1,6 @@
-import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts, AllVariables } from "./types"
+import { RhythmNumber, ParserMeasure, ParserNote, OptionsRecord, Measure, Line, Page, Expr, Element, TimeChange, Group, GNote, GroupNote, Simple, SingleSimple, SingleComplex, Complex, Property, MultiProperty, EitherProperty, isMulti, SingleNote, Note, Notehead, GuitarString, Ints, Pitch, Key, Rest, Rhythm, isRhythmNumberNumber, Tuplet, TupletNote, isInts, AllVariables, Repeat, Changes, Ending } from "./types"
 import { evalInnerOption } from "./options"
-import { bufferElement, emptyElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth } from "./constants"
+import { bufferElement, emptyElement, defaultElement, barlineElement, emptyElementWidth, timeChangeWidth, keyChange, widths, graceWidths, arrayOfRhythms, minimumLastWidth, tupletWidthReduction, firstLineWidth, otherLinesWidth, firstPageLineStart, otherPagesLineStart, lastPossibleLineStart, heightBetweenLines, firstLineX, otherLinesX, emptyMeasure, emptyMeasureWidth, repeatWidth } from "./constants"
 
 
 
@@ -1037,7 +1037,7 @@ function evalMeasureHelper(measureNumber: number, notes: ParserNote[], notesWith
 5. defaultRhythm: rhythm to be used if none is given on a note
 RETURNS the new Measure
 */
-export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables: AllVariables, changes, defaultRhythm: [RhythmNumber, number]) : [Measure, [RhythmNumber, number]] {
+export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables: AllVariables, changes: Changes, defaultRhythm: [RhythmNumber, number]) : [Measure, [RhythmNumber, number], Changes] {
 
   let originalNotes = m.notes
   const measureNumber = m.measureNumber
@@ -1068,13 +1068,11 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
   // Add empty space at the beginning
   elements.unshift(emptyElement)
 
-  // Add barline at the end
-  elements.push(barlineElement)
-
   // Add the empty element's width
   width += emptyElementWidth
-
-  // If there's a time change, add that
+  
+  // ------------ Add in elements for option changes
+  
   if (changes.time) {
 
     const timeChange : TimeChange = {
@@ -1082,21 +1080,102 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       newTime: optionsR.time
     }
 
-    const timeChangeElement : Element = {
-      noteInfo: timeChange,
-      duration: "norhythm",
-      start: 0.0,
-      width: timeChangeWidth,
-      lastNote: false,
-      location: [0.0, 0.0],
-      graceNotes: [],
-      comments: ""
-    }
+    const timeChangeElement = defaultElement
+
+    timeChangeElement.noteInfo = timeChange 
+    timeChangeElement.width = timeChangeWidth
 
     elements.unshift(timeChangeElement)
     width += timeChangeWidth
 
   }
+
+  if (changes.repeatStart) {
+
+    const repeat : Repeat = {
+      kind: "repeat",
+      start: true
+    }
+
+    const repeatElement = defaultElement
+
+    repeatElement.noteInfo = repeat
+    repeatElement.width = repeatWidth
+
+    elements.unshift(repeatElement)
+    width += repeatWidth
+
+  }
+
+  if (changes.repeatEnd) {
+
+    const repeat : Repeat = {
+      kind: "repeat",
+      start: false
+    }
+
+    const repeatElement = defaultElement
+
+    repeatElement.noteInfo = repeat
+    repeatElement.width = repeatWidth
+
+    elements.push(repeatElement)
+    width += repeatWidth
+
+  }
+
+  if (changes.endingStart) {
+
+    const ending : Ending = {
+      kind: "ending",
+      endingType: "start",
+      endingString: changes.endingString
+    }
+
+    const endingElement = defaultElement
+
+    endingElement.noteInfo = ending
+
+    elements.unshift(endingElement)
+
+  }
+
+  if (changes.endingContinue) {
+
+    const ending : Ending = {
+      kind: "ending",
+      endingType: "continue",
+      endingString: changes.endingString
+    }
+
+    const endingElement = defaultElement
+
+    endingElement.noteInfo = ending
+
+    elements.unshift(endingElement)
+
+  }
+
+  if (changes.endingEnd) {
+
+    const ending : Ending = {
+      kind: "ending",
+      endingType: "end",
+      endingString: changes.endingString
+    }
+
+    const endingElement = defaultElement
+
+    endingElement.noteInfo = ending
+
+    elements.unshift(endingElement)
+
+  }
+
+
+  // Add barline at the end
+  elements.push(barlineElement)
+
 
   const measure : Measure = {
     key: optionsR.key,
@@ -1108,9 +1187,70 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
     changes: changes
   }
 
-  return [measure, newDefaultRhythm]
+  // All changes except for ending are automatically set to false, since they don't carry over measure to measure
+  // Endings may need to continue
+
+  const newChanges : Changes = {
+    time: false,
+    key: false,
+    capo: false,
+    repeatStart: false,
+    repeatEnd: false,
+    endingStart: false,
+    endingContinue: false,
+    endingEnd: false,
+    endingString: ""
+  }
+
+  if (changes.endingStart && !changes.endingEnd) {
+    newChanges.endingContinue = true 
+    newChanges.endingString = changes.endingString
+  }
+
+  return [measure, newDefaultRhythm, newChanges]
 
 }
+
+
+
+
+
+/* Moves any repeat-ends or other end-of-measure options to prior to that measure in the order so that it's evaluated in the correct order
+1. elements: list of all options and measures
+RETURNS reshuffled list of options and measures
+*/
+function reshuffleElements(elements: Expr[]) : Expr[] {
+
+  let reshuffledElements : Expr[] = []
+
+  elements.forEach(e => {
+
+    switch (e.kind) {
+
+      case "scoreOption":
+
+        if ((e.option === "repeat" && e.value === "end") || (e.option === "ending" && e.value.split(" ")[0] === "end")) {
+          reshuffledElements.splice(reshuffledElements.length - 1, 0, e)
+        } else {
+          reshuffledElements.push(e)
+        }
+        break;
+
+      case "parserMeasure":
+
+        reshuffledElements.push(e)
+        break;
+
+      default:
+        throw new Error("Internal error in divide: reshuffleElements")
+    }
+  })
+
+  return reshuffledElements
+
+}
+
+
 
 
 
@@ -1126,25 +1266,40 @@ export function evalMeasures(elements: Expr[], variables: AllVariables, optionsR
   let measures : Measure[] = []
   let newDefaultRhythm : [RhythmNumber, number] = defaultRhythm
 
-  let changes = {
+  let changes : Changes = {
     time: false,
     key: false,
-    capo: false
+    capo: false,
+    repeatStart: false,
+    repeatEnd: false,
+    endingStart: false,
+    endingContinue: false,
+    endingEnd: false,
+    endingString: ""
   }
+
+  // Reshuffle elements. If there are certain ending options after a measure, move it to before the measure
+  const reshuffledElements : Expr[] = reshuffleElements(elements)
 
   // For user debugging
   let lastMeasureNumber = 0
 
-  elements.forEach(p => {
+  reshuffledElements.forEach(p => {
 
     switch (p.kind) {
       case "scoreOption":
 
         // Call evalOptions to update the optionsR. The info is then saved for use for the measures that come after
-        const [newOptionsR, kind] = evalInnerOption(p, optionsR, lastMeasureNumber)
+        const [newOptionsR, kind, val] = evalInnerOption(p, optionsR, lastMeasureNumber)
 
         optionsR = newOptionsR
+
         changes[kind] = true
+
+        // Set endingstring if necessary
+        if (kind.includes("ending") && val) {
+          changes.endingString = val
+        }
 
         break;
 
@@ -1152,14 +1307,11 @@ export function evalMeasures(elements: Expr[], variables: AllVariables, optionsR
 
         // Call the helper
         let newMeasure : Measure
-        [newMeasure, newDefaultRhythm] = evalMeasure(p, optionsR, variables, changes, newDefaultRhythm)
+        let newChanges : Changes
+        [newMeasure, newDefaultRhythm, newChanges] = evalMeasure(p, optionsR, variables, changes, newDefaultRhythm)
 
         measures.push(newMeasure)
-        changes = {
-          time: false,
-          key: false,
-          capo: false
-        }
+        changes = newChanges
         lastMeasureNumber = p.measureNumber
         break;
 
