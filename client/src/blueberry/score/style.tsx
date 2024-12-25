@@ -56,6 +56,14 @@ path.fancy-line-curl {
   stroke-width: 2.2px;
 }
 
+.ending-lines {
+  stroke-width: 0.5px;
+}
+
+.ending-text {
+  font-size: 6px;
+}
+
 .fret-number, .fret-number-grace {
   font-family: "Arial";
   font-weight: bold;

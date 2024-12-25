@@ -284,9 +284,10 @@ function showGroupNote(element: Element, x: number, y: number, scale: number) : 
 2. x location
 3. y location
 4. scale for widths
+5. hasEnding: does this measure have an ending?
 RETURNS the updated element, and code to show this note
 */
-function showTupletNote(element: Element, x: number, y: number, scale: number) : [Element, ReactElement] {
+function showTupletNote(element: Element, x: number, y: number, scale: number, hasEnding: boolean) : [Element, ReactElement] {
 
   // typecheck
   if (element.noteInfo.kind !== "tupletNote") {
@@ -306,7 +307,7 @@ function showTupletNote(element: Element, x: number, y: number, scale: number) :
     {
       tupletElements.map((el, index) => {
 
-        [newElement, elementCode, newX] = showElement(el, 0, scale, newX, y)
+        [newElement, elementCode, newX] = showElement(el, 0, scale, newX, y, hasEnding)
         newElements.push(newElement)
 
         return <Fragment key={index}>
@@ -506,9 +507,10 @@ function showRest(element: Element, x: number, y: number, width: number) : React
 3. scale: ratio used to scale how much space the element takes up
 4. x location
 5. y location
+6. hasEnding: is there an ending in this measure?
 RETURNS the updated element, the code, and the new x location for the next element
 */
-function showElement(element: Element, width: number, scale: number, x: number, y: number) : [Element, ReactElement, number] {
+function showElement(element: Element, width: number, scale: number, x: number, y: number, hasEnding: boolean) : [Element, ReactElement, number] {
 
   let newElement : Element
 
@@ -516,7 +518,8 @@ function showElement(element: Element, width: number, scale: number, x: number, 
   let code : ReactElement = <></>
 
   // First write out the comments
-  const comment = <text className="comment" x={x + 2} y={y - 50} textAnchor="middle">{element.comments}</text>
+  const commentY = hasEnding ? y - 56 : y - 50
+  const comment = <text className="comment" x={x + 2} y={commentY} textAnchor="middle">{element.comments}</text>
 
   const notehead = element.noteInfo
 
@@ -566,7 +569,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
 
     case "tupletNote":
 
-      [newElement, code] = showTupletNote(element, x, y, scale)
+      [newElement, code] = showTupletNote(element, x, y, scale, hasEnding)
       newX += (scale * element.width)
       break;
 
@@ -627,7 +630,33 @@ function showElement(element: Element, width: number, scale: number, x: number, 
 
     case "ending":
 
-      // TODO
+      switch (notehead.endingType) {
+        case "start":
+
+          code = <>
+            <path className="ending-lines" d={`M ${x} ${y - 52} l ${width} 0`} />
+            <path className="ending-lines" d={`M ${x} ${y - 52} l 0 7`} />
+            <text x={x + 2} y={y - 46} textAnchor="left" className="ending-text">{`${notehead.endingString}.`}</text>
+          </>
+
+          break;
+
+        case "continue":
+
+          code = <>
+            <path className="ending-lines" d={`M ${x} ${y - 52} l ${width} 0`} />
+          </>
+          break;
+
+        case "end":
+
+          code = <>
+            <path className="ending-lines" d={`M ${x} ${y - 52} l ${width} 0`} />
+            <path className="ending-lines" d={`M ${x + width} ${y - 52} l 0 7`} />
+          </>
+
+          break;
+      }
 
       newElement = {
         ...element,
@@ -670,6 +699,9 @@ function showMeasure(measure: Measure, x: number, y: number, scale: number) : [M
   // since the empty space at the beginning needs to be constant size, recalculate the scale based on that
   const insideScale = (newWidth - emptyElementWidth) / (measure.width - emptyElementWidth)
 
+  // A flag if this measure contains an ending. If it does, then the comment needs to be pushed up a little higher on the page so it doesn't overlap with the line
+  let hasEnding = elements.some(e => e.noteInfo.kind === "ending")
+
   let newElement : Element
   let code : ReactElement
   let newX : number = x
@@ -685,7 +717,7 @@ function showMeasure(measure: Measure, x: number, y: number, scale: number) : [M
 
     {elements.map((el, index) => {
 
-      [newElement, code, newX] = showElement(el, newWidth, insideScale, newX, y)
+      [newElement, code, newX] = showElement(el, newWidth, insideScale, newX, y, hasEnding)
       updatedElements.push(newElement)
 
       return <Fragment key={index}>
@@ -742,8 +774,8 @@ function showLine(line: Line) : [Line, ReactElement] {
     <line className="staffline" x1={staffX} y1={staffY - 24} x2={x2} y2={staffY - 24} />
     <line className="staffline" x1={staffX} y1={staffY - 30} x2={x2} y2={staffY - 30} />
 
-    <line className="barline" x1={staffX} y1={staffY + 0.2} x2={staffX} y2={staffY - 30.4} />
-    <line className="barline" x1={x2} y1={staffY + 0.2} x2={x2} y2={staffY - 30.4} />
+    <line className="barline" x1={staffX} y1={staffY + 0.2} x2={staffX} y2={staffY - 30.2} />
+    <line className="barline" x1={x2} y1={staffY + 0.2} x2={x2} y2={staffY - 30.2} />
 
     <path className="fancy-line-main" d={`M ${staffX - 5} ${staffY + 5} l 0 -40`} />
     <path className="fancy-line-curl bottom-curl" d={`M ${staffX - 4} ${staffY + 5} C ${staffX - 2} ${staffY + 5}, ${staffX - 0.5} ${staffY + 5.5}, ${staffX + 2} ${staffY + 8} A 10 10 0 0 0 ${staffX - 6} ${staffY + 3}`} />

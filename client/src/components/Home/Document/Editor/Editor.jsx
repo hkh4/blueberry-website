@@ -11,6 +11,8 @@ import errorHandling from "../../../../helpers/errorHandling"
 import useInterval from "./../../../../hooks/useInterval"
 import { useAuthContext } from "./../../../../hooks/useAuthContext"
 
+import blueberry from "./../../../../blueberry/program.tsx"
+
 
 // Constants
 const SAVE_INTERVAL_MS = 2000
@@ -59,6 +61,9 @@ function Editor({
   
   }
 
+  // Custom interval hook to save automatically
+  useInterval(save, SAVE_INTERVAL_MS, [socket, quill, startSaving, user])
+
   // Share the document with another user
   async function shareDocument(e) {
 
@@ -69,8 +74,6 @@ function Editor({
       if (!user || !documentID) return
 
       setShareError(null)
-
-      console.log("before")
 
       // Patch request to share
       await axios.patch(`/api/documents/share/${documentID}`, {
@@ -91,8 +94,62 @@ function Editor({
 
   }
 
-  // Custom interval hook to save automatically
-  useInterval(save, SAVE_INTERVAL_MS, [socket, quill, startSaving, user])
+
+  // Reset measure numbers, tab all notes
+  function reformat() {
+
+    // Grab plaintext from quill
+    const text = quill.getText()
+
+    const lines = text.split("\n")
+
+    // **************** Methodology:
+    // Go line by line until you reaching a line that contains a ":", which marks the first measure
+
+    let measuresStart = false
+    let measureNumber = 1
+
+    let newLines = []
+
+    lines.forEach(l => {
+      
+      // If we're currently working on measures, start looking for notes to tab
+      if (measuresStart || l.includes(":")) {
+        measuresStart = true
+
+        // If there's a colon, then this is a measure number
+        if (l.includes(":")) {
+
+          // Push the current measure number
+          let newL = `${measureNumber}:`
+          measureNumber++
+          newLines.push(newL) 
+
+        } else if (l.includes("-")) {
+          // If there's a dash, it must be an option
+          newLines.push(l.trim())
+
+        } else {
+          // Otherwise, it must be a note. Make sure there's a tab
+          const lWithoutTab = l.split("\t").slice(-1)
+          const newL = `\t${lWithoutTab}`
+          newLines.push(newL)
+        }
+
+      } else {
+        // if we're still in the beginning options, just strip the whitespace
+        newLines.push(l.trim())
+      }
+
+    })
+
+    const finalText = newLines.join("\n")
+    
+    quill.setText(finalText)
+
+    compile()
+
+  }
 
 
   // Set up quill
@@ -229,6 +286,7 @@ function Editor({
         <button className="button share" onClick={e => setShareOpen(true)}>Share</button>
         <button className="button download" onClick={() => downloadPDF(previewRef, title)}>Download PDF</button>
         <button className="button save" onClick={save}>Save</button>
+        <button className="button reformat" onClick={reformat}>Reformat</button>
       </div>
 
       {shareOpen && 

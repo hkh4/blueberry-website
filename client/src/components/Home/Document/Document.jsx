@@ -19,6 +19,7 @@ function Document() {
       <Editor
         setInput={setInput}
         previewRef={previewRef}
+        previewError={error}
       />
 
       <Preview
@@ -27,7 +28,6 @@ function Document() {
         setSVG={setSVG}
         error={error}
         setError={setError}
-        previewRef={previewRef}
         />
     </div>
   )

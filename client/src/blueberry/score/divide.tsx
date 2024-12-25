@@ -610,8 +610,6 @@ export function parseTuplet(measureNumber: number, note: Tuplet, last: boolean, 
 
   const newDefaultRhythm : [RhythmNumber, number] = tupletRhythm
 
-  console.log([tupletElement, isGraceTuplet, newDefaultRhythm])
-
   return [tupletElement, isGraceTuplet, newDefaultRhythm]
 
 }
@@ -1080,7 +1078,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       newTime: optionsR.time
     }
 
-    const timeChangeElement = defaultElement
+    const timeChangeElement = {...defaultElement}
 
     timeChangeElement.noteInfo = timeChange 
     timeChangeElement.width = timeChangeWidth
@@ -1097,7 +1095,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       start: true
     }
 
-    const repeatElement = defaultElement
+    const repeatElement = {...defaultElement}
 
     repeatElement.noteInfo = repeat
     repeatElement.width = repeatWidth
@@ -1114,7 +1112,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       start: false
     }
 
-    const repeatElement = defaultElement
+    const repeatElement = {...defaultElement}
 
     repeatElement.noteInfo = repeat
     repeatElement.width = repeatWidth
@@ -1132,7 +1130,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       endingString: changes.endingString
     }
 
-    const endingElement = defaultElement
+    const endingElement = {...defaultElement}
 
     endingElement.noteInfo = ending
 
@@ -1148,7 +1146,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       endingString: changes.endingString
     }
 
-    const endingElement = defaultElement
+    const endingElement = {...defaultElement}
 
     endingElement.noteInfo = ending
 
@@ -1164,7 +1162,7 @@ export function evalMeasure(m: ParserMeasure, optionsR: OptionsRecord, variables
       endingString: changes.endingString
     }
 
-    const endingElement = defaultElement
+    const endingElement = {...defaultElement}
 
     endingElement.noteInfo = ending
 
@@ -1308,6 +1306,7 @@ export function evalMeasures(elements: Expr[], variables: AllVariables, optionsR
         // Call the helper
         let newMeasure : Measure
         let newChanges : Changes
+        
         [newMeasure, newDefaultRhythm, newChanges] = evalMeasure(p, optionsR, variables, changes, newDefaultRhythm)
 
         measures.push(newMeasure)
