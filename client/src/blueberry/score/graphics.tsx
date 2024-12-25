@@ -644,7 +644,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
         case "start":
 
           code = <>
-            <path className="ending-lines" d={`M ${x} ${y - 52} l ${width} 0`} />
+            <path className="ending-lines" d={`M ${x - 0.2} ${y - 52} l ${width + 0.2} 0`} />
             <path className="ending-lines" d={`M ${x} ${y - 52} l 0 7`} />
             <text x={x + 2} y={y - 46} textAnchor="left" className="ending-text">{`${notehead.endingString}.`}</text>
           </>
@@ -661,7 +661,7 @@ function showElement(element: Element, width: number, scale: number, x: number, 
         case "end":
 
           code = <>
-            <path className="ending-lines" d={`M ${x} ${y - 52} l ${width} 0`} />
+            <path className="ending-lines" d={`M ${x} ${y - 52} l ${width + 0.2} 0`} />
             <path className="ending-lines" d={`M ${x + width} ${y - 52} l 0 7`} />
           </>
 

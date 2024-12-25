@@ -28,6 +28,7 @@ function Document() {
         setSVG={setSVG}
         error={error}
         setError={setError}
+        previewRef={previewRef}
         />
     </div>
   )
