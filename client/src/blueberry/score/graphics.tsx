@@ -518,8 +518,18 @@ function showElement(element: Element, width: number, scale: number, x: number, 
   let code : ReactElement = <></>
 
   // First write out the comments
-  const commentY = hasEnding ? y - 56 : y - 50
-  const comment = <text className="comment" x={x + 2} y={commentY} textAnchor="middle">{element.comments}</text>
+  // If hasEnding is true OR if (up) is in the comment, push it upwards
+  let commentString = element.comments
+
+  let commentY = y - 50
+  if (hasEnding) {
+    commentY = y - 56
+  } else if (commentString.includes("(up)")) {
+    commentY = y - 56
+    commentString = commentString.replace("(up)", "")
+  }
+
+  const comment = <text className="comment" x={x + 2} y={commentY} textAnchor="middle">{commentString}</text>
 
   const notehead = element.noteInfo
 
