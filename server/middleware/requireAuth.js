@@ -4,6 +4,8 @@ const User = require("./../mongodb/models/User")
 const requireAuth = async (req, res, next) => {
 
   try {
+    console.log("in require auth")
+    console.log(req.route)
     // Verify authentication
     const { authorization } = req.headers;
 

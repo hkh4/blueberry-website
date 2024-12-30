@@ -3,7 +3,11 @@ const jwt = require("jsonwebtoken")
 
 // Function to create a jwt
 const createToken = (_id, admin) => {
-    return jwt.sign({_id, admin}, process.env.SECRET, {expiresIn: '3d'}) 
+    const exp = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 3)
+    return {
+        token: jwt.sign({_id, admin}, process.env.SECRET, {expiresIn: '3d'}),
+        expiry: exp
+    } 
 }
 
 // Login user
@@ -16,9 +20,9 @@ const loginUser = async (req, res, next) => {
         const user = await User.login(email, password)
 
         // Create a token
-        const token = createToken(user._id, user.admin)
+        const { token, expiry } = createToken(user._id, user.admin)
 
-        res.status(200).json({id: user._id, email, token})
+        res.status(200).json({ id: user._id, email, token, expiry })
 
     } catch(e) {
         next(e)

@@ -51,7 +51,7 @@ const createDocument = async (req, res, next) => {
 
     try {
 
-        let {user, id, title, data} = req.body
+        let {user, id, title, data, type} = req.body
 
         // The ID field needs to be filled out
         if (!id) {
@@ -65,7 +65,7 @@ const createDocument = async (req, res, next) => {
         data = data ?? {}
 
         // Create the new document
-        const document = await Document.create({ _id: id, title, data, users: [user] })
+        const document = await Document.create({ _id: id, title, data, users: [user], type: type })
 
         // Add the id of this document to the list of documents of the user
         await User.updateOne({_id: user}, {$push: {documents: id}})

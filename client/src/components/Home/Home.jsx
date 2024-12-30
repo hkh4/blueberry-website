@@ -14,7 +14,7 @@ const Welcome = lazy(() => import("./Welcome/Welcome"))
 
 function Home() {
 
-  const { user } = useAuthContext() 
+  const { user } = useAuthContext()  
 
   return (
     <>

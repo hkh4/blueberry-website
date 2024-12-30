@@ -8,6 +8,7 @@ const cors = require('cors')
 // const test = require("./server/routes/test")
 const documentRoutes = require("./server/routes/documents")
 const userRoutes = require("./server/routes/user")
+const testRoutes = require("./server/routes/test")
 
 
 // Express setup
@@ -18,6 +19,7 @@ app.use(cors())
 // app.use("/api", test)
 app.use("/api/documents", documentRoutes)
 app.use("/api/user", userRoutes)
+app.use("/api/test", testRoutes)
 const http = require("http").Server(app)
 
 

@@ -24,6 +24,19 @@ export const AuthContextProvider = ({ children }) => {
         // Get user from localstorage
         const user = JSON.parse(localStorage.getItem("user"))
 
+        if (!user) {
+            dispatch({ type: 'LOGOUT' })
+            return
+        }
+
+        // If the token has expired, logout
+        const expiry = user.expiry
+        const now = Math.floor(Date.now() / 1000)
+        if (now > expiry) {
+            dispatch({ type: 'LOGOUT' })
+            return
+        }
+
         // Update the state if user exists. 
         if (user) {
             dispatch({ type: 'LOGIN', payload: user })

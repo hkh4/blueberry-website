@@ -1,4 +1,4 @@
-const { parseSimple, parseComplex, parseGroup, parseTuplet, evalMeasure } = require("./../score/divide")
+const { parseSimple, parseComplex, parseGroup, parseTuplet, evalMeasure } = require("../tabs/divide")
 
 // ************************* Note parsers
 

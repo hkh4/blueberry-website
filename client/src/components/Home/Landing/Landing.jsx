@@ -60,7 +60,7 @@ function Landing() {
   }, [dispatch, user]);
 
   // Function that loads a new document when the "New" button is clicked
-  const openNewDocument = async () => {
+  const openNewDocument = async (docType) => {
 
     if (!user) return
 
@@ -73,7 +73,8 @@ function Landing() {
         id: documentID,
         title: "Untitled",
         data: {},
-        user: user.id
+        user: user.id,
+        type: docType
       }, {
         headers: {
           "Authorization" : `Bearer ${user.token}`
@@ -119,41 +120,49 @@ function Landing() {
         {loading ? (
           <span>Loading...</span>
         ) : (
-          <table className="documents-table">
-            <tbody>
-              <tr>
-                <th className="documents-table-title">Title</th>
-                <th className="documents-table-modified">Last Modified</th>
-                <th className="documents-table-actions">Actions</th>
-              </tr>
-            
-              {documents.map((d) => {
-
-                let date = new Date(d.updatedAt)
-                let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
-
-                return (
-                  <tr key={d._id}>
-                    <td>
-                      <Link
-                        className="link"
-                        to={`/documents/${d._id}`}
-                      >{`${d.title}`}</Link>
-                    </td>
-                    <td>{`${dateString}`}</td>
-                    <td>
-                      <span onClick={e => deleteDocument(d._id)}>
-                        <FontAwesomeIcon icon={faTrashCan} />
-                      </span>
-                    </td>
+          <div>
+            <div>
+              <h2>Tabs</h2>
+              <table className="documents-table">
+                <tbody>
+                  <tr>
+                    <th className="documents-table-title">Title</th>
+                    <th className="documents-table-modified">Last Modified</th>
+                    <th className="documents-table-actions">Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          
+                
+                  {documents.map((d) => {
+
+                    let date = new Date(d.updatedAt)
+                    let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
+
+                    return (
+                      <tr key={d._id}>
+                        <td>
+                          <Link
+                            className="link"
+                            to={`/documents/${d._id}`}
+                          >{`${d.title}`}</Link>
+                        </td>
+                        <td>{`${dateString}`}</td>
+                        <td>
+                          <span onClick={e => deleteDocument(d._id)}>
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                </tbody>
+              </table>
+              <button onClick={() => openNewDocument("tab")}>New</button>
+            </div>
+            <div>
+              <h2>Lyrics</h2>
+            </div>
+          </div>
         )}
-        <button onClick={openNewDocument}>New</button>
       </div>
     </div>
   );

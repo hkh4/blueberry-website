@@ -1,7 +1,7 @@
-import { grammar } from "./score/parser"
-import interpret from "./score/interpreter"
+import { grammar } from "./tabs/parser"
+import interpret from "./tabs/interpreter"
 import { ReactElement } from "react"
-import { PreviousPageCode } from "./score/types"
+import { PreviousPageCode } from "./tabs/types"
 
 export default function main(programType: string, input: string) : ReactElement | string {
 

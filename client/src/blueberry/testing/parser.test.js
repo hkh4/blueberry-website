@@ -1,5 +1,5 @@
 // TESTING THE PARSER
-const { grammar } = require("./../score/parser")
+const { grammar } = require("../tabs/parser")
 
 // A really simple document example
 const simpleGrammar =
