@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react"
+import { lazy } from "react"
 import { 
   BrowserRouter as Router,  
   Route, 
@@ -10,11 +10,11 @@ import { useAuthContext } from "./../../hooks/useAuthContext"
 const Document = lazy(() => import("./Document/Document"))
 const Landing = lazy(() => import("./Landing/Landing"))
 const Welcome = lazy(() => import("./Welcome/Welcome"))
-
+const Super = lazy(() => import("./Super/Super"))
 
 function Home() {
 
-  const { user } = useAuthContext()  
+  const { user } = useAuthContext()
 
   return (
     <>
@@ -26,6 +26,8 @@ function Home() {
         <Route path="/documents/:id" element={<Document />}/>
 
         <Route path="/home" element={<Landing />}/>
+
+        <Route path="/super" element={<Super />}/>
 
         <Route path="*" element={<Navigate to="/home" replace />}/>
 

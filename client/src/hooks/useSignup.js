@@ -22,7 +22,7 @@ export function useSignup() {
             })
 
             // Save the user to local storage
-            localStorage.setItem('user', JSON.stringify(response.data))
+            localStorage.setItem('user', JSON.stringify(response.data)) 
             
             // Update the auth context
             dispatch({type: 'LOGIN', payload: response.data})
