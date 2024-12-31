@@ -13,6 +13,8 @@ import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 function Landing() {
     
   const { documents, dispatch } = useDocumentsContext();
+  const [tabDocuments, setTabDocuments] = useState([])
+  const [lyricDocuments, setLyricDocuments] = useState([])
   const { user } = useAuthContext()
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true)
@@ -46,6 +48,7 @@ function Landing() {
         }
         setLoading(false)
       } catch (e) {
+        console.log(e)
         if (axios.isCancel(e)) return;
         errorHandling(e);
       }
@@ -58,6 +61,19 @@ function Landing() {
     };
 
   }, [dispatch, user]);
+
+
+  // When the document list changes, update the tab and lyrics lists
+  useEffect(() => {
+
+    const tabDocs = documents.filter(d => d.type === "tab")
+    const lyricDocs = documents.filter(d => d.type === "lyric")
+
+    setTabDocuments(tabDocs)
+    setLyricDocuments(lyricDocs)
+
+  }, [documents])
+
 
   // Function that loads a new document when the "New" button is clicked
   const openNewDocument = async (docType) => {
@@ -121,6 +137,7 @@ function Landing() {
           <span>Loading...</span>
         ) : (
           <div>
+
             <div>
               <h2>Tabs</h2>
               <table className="documents-table">
@@ -131,7 +148,7 @@ function Landing() {
                     <th className="documents-table-actions">Actions</th>
                   </tr>
                 
-                  {documents.map((d) => {
+                  {tabDocuments.map((d) => {
 
                     let date = new Date(d.updatedAt)
                     let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
@@ -158,9 +175,42 @@ function Landing() {
               </table>
               <button onClick={() => openNewDocument("tab")}>New</button>
             </div>
+
+            
+
             <div>
               <h2>Lyrics</h2>
+              <table className="documents-table">
+                <tbody>
+                
+                  {lyricDocuments.map((d) => {
+
+                    let date = new Date(d.updatedAt)
+                    let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
+
+                    return (
+                      <tr key={d._id}>
+                        <td>
+                          <Link
+                            className="link"
+                            to={`/documents/${d._id}`}
+                          >{`${d.title}`}</Link>
+                        </td>
+                        <td>{`${dateString}`}</td>
+                        <td>
+                          <span onClick={e => deleteDocument(d._id)}>
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                </tbody>
+              </table>
+              <button onClick={() => openNewDocument("lyric")}>New</button>
             </div>
+
           </div>
         )}
       </div>

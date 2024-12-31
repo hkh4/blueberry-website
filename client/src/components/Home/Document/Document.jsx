@@ -9,6 +9,7 @@ function Document() {
   const [input, setInput] = useState("") 
   const [svg, setSVG] = useState([])
   const [error, setError] = useState("")
+  const [docType, setDocType] = useState("")
 
   // ***************** Refs
   const previewRef = useRef()

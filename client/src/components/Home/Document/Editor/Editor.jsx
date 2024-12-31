@@ -171,7 +171,7 @@ function Editor({
   // Set up socket.io
   useEffect(() => {
 
-    const ENDPOINT = process.env.NODE_ENV === "production" ? 'https://blueberry-website.herokuapp.com' : 'http://localhost:6500'
+    const ENDPOINT = process.env.NODE_ENV === "production" ? 'https://blueberryguitar.com' : 'http://localhost:6500'
 
     const s = io(ENDPOINT) 
     setSocket(s)

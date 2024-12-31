@@ -6,7 +6,7 @@ const Document = new Schema({
     title: String,
     type: {
         type: String,
-        enum: ["tab", "lyrics"]
+        enum: ["tab", "lyric"]
     },
     users: [String]
 }, { timestamps: true })

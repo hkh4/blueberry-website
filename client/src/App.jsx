@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 
 import "./App.scss";
@@ -21,6 +21,13 @@ const Login = lazy(() => import("./components/Login/Login"));
 function App() {
 
   const { user } = useAuthContext()
+
+  // Redirect from www. if needed
+  useEffect(() => {
+    if (window.location.hostname.startsWith("www.")) {
+      window.location.href = window.location.href.replace("www.", "")
+    }
+  })
 
   return (
     <Router>
