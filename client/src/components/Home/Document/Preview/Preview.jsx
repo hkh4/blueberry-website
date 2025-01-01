@@ -7,7 +7,8 @@ function Preview({
   setSVG,
   error,
   setError,
-  previewRef
+  previewRef,
+  docType
 }) {
 
   // ******************* State
@@ -15,7 +16,15 @@ function Preview({
   // When the input changes, call blueberry to parse
   useEffect(() => {
 
-    const result = blueberry("score", input)
+    let result;
+    console.log(input)
+    if (input === "") return
+
+    if (docType === "tab") {
+      result = blueberry("tab", input)
+    } else{
+      result = blueberry("lyric", input)
+    }
 
     // if the return type is a string, then it's an error
     if (typeof result === "string") {
@@ -25,7 +34,7 @@ function Preview({
       setSVG(result)
     }
  
-  }, [input, setError, setSVG])
+  }, [input, setError, setSVG, docType])
 
   return (
     <div id="preview" ref={previewRef}>

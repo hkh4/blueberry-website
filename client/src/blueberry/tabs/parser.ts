@@ -1,32 +1,6 @@
 import { ScoreOption, Rhythm, RestSimple, RestComplex, SingleSimple, SingleComplex, GroupSimple, GroupComplex, GNote, Tuplet, Comment, ParserMeasure, ParserNote, Variable, UseVariable, Pitch, EitherProperty, MultiProperty, Property } from "./types"
+import { word, singleSpace, spaces, stringNum, emptySpaces, emptySpaces1, spacesAndNewline, emptyLines, restOfLine, digits } from "./../shared/parser_shared"
 const P = require("parsimmon")
-
-const word = P.takeWhile(input => {
-  const notAllowed = [' ', '\n', '\r', '\t', '\r\n']
-  return !notAllowed.includes(input)
-})
-  .desc("a word")
-
-
-const singleSpace = P.string(" ")
-const spaces = P.alt(P.string(" "), P.string("\t"), P.string("\n"), P.string("\r"), P.string("\r\n")).many()
-  .desc("spaces or newlines")
-const regularSpace = P.alt(P.string(" "), P.string("\t"))
-  .desc("a space")
-const emptySpaces = regularSpace.many()
-  .desc("empty spaces")
-const emptySpaces1 = regularSpace.atLeast(1)
-  .desc("empty spaces")
-const spacesAndNewline = emptySpaces.skip(P.newline)
-  .desc("spaces and a newline")
-const emptyLines = spacesAndNewline.many()
-  .desc("empty lines")
-
-const restOfLine = P.takeWhile(input => {
-  return (input !== '\n' && input !== '\r' && input !== '\r\n')
-}).map((r: string) => {
-  return r.trim()
-})
 
 
 // *********** PARSE OPTIONS ***************
@@ -48,7 +22,7 @@ const singleOption = P.seqMap(optionIdentifier, restOfLine, P.newline, function(
 
 const singleOptionBetweenMeasures = singleOption.skip(spaces)
 
-const option = singleOption.many().skip(spaces)
+const options = singleOption.trim(spaces).many()
 
 
 
@@ -145,8 +119,7 @@ const rhythm = P.seqMap(rhythmNumber, dot, function(num, d) {
 
 
 // measure number
-const number = P.digits
-const measureNumber = P.seqMap(number, P.string(":"), spacesAndNewline, function(n, c, s) {
+const measureNumber = P.seqMap(digits, P.string(":"), spacesAndNewline, function(n, c, s) {
   return n
 })
   .desc("a measure number of the form <number>:")
@@ -179,14 +152,6 @@ const anyRest = P.alt(restComplex, restSimple)
 
 
 // *** Single notes
-
-// Only allow strings 1-6
-const stringNum = P.test((c: string) => {
-  return ["1", "2", "3", "4", "5", "6"].includes(c)
-})
-  .map(Number)
-  .desc("1, 2, 3, 4, 5 or 6 to indicate which string of the guitar")
-
 
 const singleSimple = P.seqMap(stringNum, pitch, anyProperties, (str, p, props) => {
   const x : SingleSimple = {
@@ -383,8 +348,8 @@ const variables = singleVariable.many().trim(spaces)
 const measureOrOption = P.alt(measure, singleOptionBetweenMeasures).many()
 
 
-const expr = P.seqMap(spaces, option, variables, measureOrOption, spaces, (_, o, v, m, s) => {
+const expr = P.seqMap(spaces, options, variables, measureOrOption, spaces, (_, o, v, m, s) => {
   return [o, v, m]
 })
 
-export const grammar = expr.skip(P.eof)
+export const tabGrammar = expr.skip(P.eof)

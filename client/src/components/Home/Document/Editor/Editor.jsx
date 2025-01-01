@@ -18,7 +18,8 @@ const SAVE_INTERVAL_MS = 2000
 
 function Editor({
   setInput,
-  previewRef
+  previewRef,
+  setDocType
 }) {
 
   const [quill, setQuill] = useState()
@@ -243,6 +244,7 @@ function Editor({
 
           // Set state
           setTitle(response.data.title)
+          setDocType(response.data.type)
           quill.setContents(response.data.data)
           quill.history.clear()
 

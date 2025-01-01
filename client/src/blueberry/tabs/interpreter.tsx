@@ -10,7 +10,7 @@ import { ReactElement } from "react"
 2. variables: variables for reusing blueberry code
 3. elements: measures, and possible key/capo/time change options within
 */
-export default function interpret(options: ScoreOption[], variables: Variable[], elements: Expr[]) : ReactElement {
+export default function tabInterpret(options: ScoreOption[], variables: Variable[], elements: Expr[]) : ReactElement {
 
   // Default options
   const defaultOptions : OptionsRecord = {

@@ -6,7 +6,7 @@ const Preview = lazy(() => import("./Preview/Preview"))
 function Document() {
 
   // ***************** State
-  const [input, setInput] = useState("") 
+  const [input, setInput] = useState("")
   const [svg, setSVG] = useState([])
   const [error, setError] = useState("")
   const [docType, setDocType] = useState("")
@@ -21,6 +21,7 @@ function Document() {
         setInput={setInput}
         previewRef={previewRef}
         previewError={error}
+        setDocType={setDocType}
       />
 
       <Preview
@@ -30,6 +31,7 @@ function Document() {
         error={error}
         setError={setError}
         previewRef={previewRef}
+        docType={docType}
         />
     </div>
   )
