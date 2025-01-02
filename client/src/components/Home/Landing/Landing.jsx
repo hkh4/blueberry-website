@@ -18,6 +18,8 @@ function Landing() {
   const { user } = useAuthContext()
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true)
+  const [cover, setCover] = useState(false)
+  const [toDelete, setToDelete] = useState()
 
   // Load documents from database
   useEffect(() => {
@@ -106,10 +108,13 @@ function Landing() {
     }
   }
 
+
   // function to delete a document when the trash can is clicked
-  const deleteDocument = async (id) => {
+  const deleteDocument = async () => {
 
     if (!user) return 
+
+    const id = toDelete
 
     try {
 
@@ -123,6 +128,8 @@ function Landing() {
       if (response.status === 200) {
         // dispatch action
         dispatch({ type: 'DELETE_DOCUMENT', payload: { id } })
+        setToDelete()
+        setCover(false)
       }
 
     } catch(e) {
@@ -136,7 +143,20 @@ function Landing() {
         {loading ? (
           <span>Loading...</span>
         ) : (
+
           <div>
+            { cover &&
+              <div className="cover">
+                <div className="confirmation">
+                  <span>Are you sure?</span>
+                  <button onClick={e => deleteDocument()}>Yes</button>
+                  <button onClick={e => {
+                    setCover(false)
+                    setToDelete()
+                  }}>No</button>
+                </div>
+              </div>
+            }
 
             <div>
               <h2>Tabs</h2>
@@ -163,7 +183,10 @@ function Landing() {
                         </td>
                         <td>{`${dateString}`}</td>
                         <td>
-                          <span onClick={e => deleteDocument(d._id)}>
+                          <span onClick={e => {
+                            setCover(true)
+                            setToDelete(d._id)
+                          }}>
                             <FontAwesomeIcon icon={faTrashCan} />
                           </span>
                         </td>
@@ -198,7 +221,10 @@ function Landing() {
                         </td>
                         <td>{`${dateString}`}</td>
                         <td>
-                          <span onClick={e => deleteDocument(d._id)}>
+                          <span onClick={e => {
+                            setCover(true)
+                            setToDelete(d._id)
+                          }}>
                             <FontAwesomeIcon icon={faTrashCan} />
                           </span>
                         </td>
