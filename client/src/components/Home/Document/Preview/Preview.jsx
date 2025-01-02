@@ -17,8 +17,6 @@ function Preview({
   useEffect(() => {
 
     let result;
-    console.log(input)
-    if (input === "") return
 
     if (docType === "tab") {
       result = blueberry("tab", input)

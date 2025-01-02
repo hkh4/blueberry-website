@@ -2,14 +2,14 @@ export type GuitarString = 1 | 2 | 3 | 4 | 5 | 6
 
 export type Barre = {
   kind: "barre",
-  strings: GuitarString[],
-  fret: Number
+  strings: [GuitarString, GuitarString],
+  fret: number
 }
 
 export type Dot = {
   kind: "dot",
   string: GuitarString,
-  fret: Number 
+  fret: number 
 }
 
 export type X = {
@@ -27,7 +27,7 @@ export type Chart = {
 export type Line = string
 
 export type Page = {
-  pageNumber: number,
+  pagenumber: number,
   lines: Line[]
 }
 

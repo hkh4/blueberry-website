@@ -1,4 +1,4 @@
-import { Barre, Dot, X, Note, Chart, Line, ScoreOption } from "./types"
+import { Barre, Dot, X, Note, Chart, Line, ScoreOption, GuitarString } from "./types"
 import { word, singleSpace, spaces, regularSpace, emptySpaces, emptySpaces1, spacesAndNewline, emptyLines, restOfLine, stringNum, digits } from "./../shared/parser_shared"
 const P = require("parsimmon")
 
@@ -64,7 +64,7 @@ const barre = P.seqMap(stringNum, dash, stringNum, dash, P.digits, (s1, _, s2, _
     const strings = [s1, s2].sort((a,b) => a - b)
     const b : Barre = {
       kind: "barre",
-      strings: strings,
+      strings: strings as [GuitarString, GuitarString],
       fret: s3
     }
     return b

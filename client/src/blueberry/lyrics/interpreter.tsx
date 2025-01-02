@@ -5,12 +5,17 @@ import show from "./graphics"
 
 export default function lyricInterpret(options: ScoreOption[], charts: Chart[], lines: Line[]) : ReactElement {
 
+  // Return if there's nothing
+  if (options.length === 0 && charts.length === 0 && lines.length === 0) {
+    return <></>
+  }
+
   const defaultOptions : OptionsRecord = {
     capo: "0",
     title: "Untitled",
     composer: "",
     tuningString: "Standard tuning",
-    tuning: ["e", "a", "d", "g", "b", "e"]
+    tuning: ["E", "A", "D", "G", "B", "E"]
   }
 
   // First, parse the options

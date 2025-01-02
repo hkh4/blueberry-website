@@ -1,8 +1,33 @@
-import { OptionsRecord, Chart, Line } from "./types"
+import { OptionsRecord, Chart, Line, Note } from "./types"
 import { Fragment, ReactElement } from "react"
 import { style } from "./style"
 import { defs } from "./svgDefs"
-import { PAPERHEIGHT, PAPERWIDTH } from "./constants"
+import { PAPERHEIGHT, PAPERWIDTH, XSTART, XEND, YEND, YSTART1, YSTART2, CHART_X_DIFF, CHART_Y_DIFF } from "./constants"
+
+
+
+/* Figures out the range of frets in a chart, and what the lowest fret is
+notes: the barres, xs and dots in a chart
+RETURNS the lowest fret, and the fret range
+*/
+function checkFretRange(notes: Note[]) : [number, number] {
+
+  const allFrets : number[] = []
+
+  notes.forEach(n => {
+    if ("fret" in n) {
+      allFrets.push(n.fret)
+    } 
+  })
+
+  const maxFret = Math.max(...allFrets)
+  const minFret = Math.min(...allFrets)
+
+  return [minFret, maxFret - minFret]
+
+}
+
+
 
 
 /* Create code for a chart
@@ -14,11 +39,147 @@ RETURNS chart code and new x,y coordinates
 */
 function showChart(chart: Chart, tuning: [string, string, string, string, string, string], x: number, y: number) : [ReactElement, number, number] {
   
-  const code = <>
-    <use href="#chart-line" x={x} y={x} />
+  const linesCode = <>
+    <use href="#chart-line" x={x} y={y} />
+    <use href="#chart-line" x={x} y={y+10} />
+    <use href="#chart-line" x={x} y={y+20} />
+    <use href="#chart-line" x={x} y={y+30} />
+    <use href="#chart-line" x={x} y={y+40} />
+    <use href="#chart-line" x={x} y={y+50} />
+    <use href="#chart-line-down" x={x} y={y} />
+    <use href="#chart-line-down" x={x+10} y={y} />
+    <use href="#chart-line-down" x={x+20} y={y} />
+    <use href="#chart-line-down" x={x+30} y={y} />
+    <use href="#chart-line-down" x={x+40} y={y} />
+    <use href="#chart-line-down" x={x+50} y={y} />
   </>
 
-  return [code, x, y]
+
+  /* ----------------------------- Write the title ---------------------------- */
+  const titleCode = <>
+    <text x={x+25} y={y+70} textAnchor="middle" className="chart-title">{chart.title}</text>
+  </>
+
+  /* -------------------------- Write tuning letters -------------------------- */
+  const tuningCode = <>
+    {
+      tuning.map((t, i) => {
+        return <Fragment key={i}>
+          <text x={x + (i * 10)} y={y+59} textAnchor="middle" className="chart-tuning">{t}</text>
+        </Fragment>
+      })
+    }
+  </>
+
+  /* ----------------------------- Write the notes ---------------------------- */
+
+  // First, check the range of the frets. If the range is > 4, throw an error
+  const [minFret, fretRange] = checkFretRange(chart.notes)
+  
+  if (fretRange > 4) {
+    throw new Error("Error in chart! The max difference between the lowest and highest fret in a chart is 4.")
+  }
+
+  const noteCode : ReactElement[] = []
+  let stringsCovered : Number[] = []
+  let barreFlag = false
+
+  chart.notes.forEach(n => {
+
+    switch (n.kind) {
+
+      case "barre":
+
+        // Figure out which strings are being used
+        const [s1, s2] = n.strings
+        const stringsUsed = Array.from({ length: s2 - s1 + 1 }, (_, i) => s1 + i)
+        stringsCovered = [...stringsCovered, ...stringsUsed]
+
+        const barreCode = <>
+          <line className="chart-barre" 
+            x1={x + ((s1-1) * 10)} 
+            x2={x + ((s2-1) * 10)}
+            y1={y + ((n.fret - minFret + 1) * 10) - 5}
+            y2={y + ((n.fret - minFret + 1) * 10) - 5}
+          />
+        </>
+
+        // If the barre is on fret one string one, flag it, since the fret marker will need to be moved slightly left
+        if (s1 === 1 && (n.fret - minFret) === 0) {
+          barreFlag = true
+        }
+
+        noteCode.push(barreCode)
+        break;
+
+      case "dot":
+        stringsCovered.push(n.string)
+
+        const dotCode = <>
+          <use href="#chart-circle-filled" x={x + ((n.string-1) * 10)} y={y + ((n.fret - minFret + 1) * 10) - 5} />
+        </>
+        noteCode.push(dotCode)
+        break;
+
+      case "x":
+        stringsCovered.push(n.string)
+
+        const xCode = <>
+          <use href="#chart-x" x={x + ((n.string - 1) * 10)} y={y-6} />
+        </>
+
+        noteCode.push(xCode)
+        break;  
+
+    }
+
+  })
+
+  // Figure out which strings are open
+  const stringsOpen = [1,2,3,4,5,6].filter(s => !stringsCovered.includes(s))
+
+  // Write code for open strings
+  stringsOpen.forEach(n => {
+
+    const openCode = <>
+      <use href="#chart-circle-open" x={x + ((n-1) * 10)} y={y-6} />
+    </>
+
+    noteCode.push(openCode)
+
+  })
+
+  // Write the fret number
+  const fretX = barreFlag ? (x-8) : (x-6)
+  const fretCode = <>
+    <text x={fretX} y={y + 8} className="chart-fret" textAnchor="middle">{minFret}</text>
+  </>
+
+  // Increment x and y. First, increase x. If it goes off the page, increment y instead. If that also goes off the page, set to start
+  let newX = x + CHART_X_DIFF
+  let newY = y
+  if (newX > XEND) {
+    newX = XSTART 
+    newY = y + CHART_Y_DIFF
+  }
+  if (newY > YEND) {
+    newY = YSTART2
+  }
+
+  let final = <>
+    {linesCode}
+    {titleCode}
+    {tuningCode}
+    {noteCode.map((n,i) => {
+      return <Fragment key={i}>
+        {n}
+      </Fragment>
+    })}
+    {fretCode}
+  </>
+  
+
+  return [final, newX, newY]
 
 }
 
@@ -35,7 +196,7 @@ function showOptions(optionsR: OptionsRecord) : ReactElement {
     <text x="306" y="47" textAnchor="middle" className="title">{optionsR.title}</text>
     <text x="565" y="72" textAnchor="end" className="composer">{optionsR.composer}</text>
     <text x="40" y="72" textAnchor="start" className="capo">{`capo ${optionsR.capo}`}</text>
-    <text x="40" y="87" textAnchor="start" className="tuning">{`Tuning: ${optionsR.tuning}`}</text>
+    <text x="40" y="87" textAnchor="start" className="tuning">{`Tuning: ${optionsR.tuningString}`}</text>
   </>
 
   return optionsCode
@@ -61,8 +222,8 @@ export default function show(optionsR: OptionsRecord, charts: Chart[], lines: Li
 
   // Draw charts
   let chartCodes : ReactElement[] = []
-  let x = 40
-  let y = 100
+  let x = XSTART
+  let y = YSTART1
   charts.forEach(c => {
 
     let chartCode: ReactElement
@@ -70,6 +231,8 @@ export default function show(optionsR: OptionsRecord, charts: Chart[], lines: Li
     let newY: number
     [chartCode, newX, newY] = showChart(c, optionsR.tuning, x, y)
     chartCodes.push(chartCode)
+    x = newX 
+    y = newY
 
   })
 

@@ -9,6 +9,10 @@ export default function main(programType: string, input: string) : ReactElement 
 
   try {
 
+    if (input.trim() === "") {
+      return ""
+    }
+
     if (programType === "tab") { 
 
       const result = tabGrammar.tryParse(input) 

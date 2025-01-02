@@ -19,4 +19,27 @@ line, path {
 .chart-line {
   stroke-width: 0.5px;
 }
+
+.chart-title, .chart-tuning, .chart-fret {
+  font-size: 8px;
+  font-family: Helvetica;
+}
+
+.chart-circle {
+  stroke: black;
+}
+
+.open-circle {
+  fill: none;
+  stroke-width: 0.8px;
+}
+
+.chart-x {
+  stroke-width: 0.8px;
+}
+
+.chart-barre {
+  stroke-width: 5.6px;
+  stroke-linecap: round;
+}
 `
