@@ -23,9 +23,9 @@ export const XEND = 500
 
 export const YSTART1 = 120
 
-export const YSTART2 = 100
+export const YSTART2 = 60
 
-export const YEND = 720
+export const YEND = 700
 
 /* --------------------------------- Charts --------------------------------- */
 

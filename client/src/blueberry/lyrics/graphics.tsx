@@ -155,15 +155,12 @@ function showChart(chart: Chart, tuning: [string, string, string, string, string
     <text x={fretX} y={y + 8} className="chart-fret" textAnchor="middle">{minFret}</text>
   </>
 
-  // Increment x and y. First, increase x. If it goes off the page, increment y instead. If that also goes off the page, set to start
+  // Increment x and y. First, increase x. If it goes off the page, increment y instead. 
   let newX = x + CHART_X_DIFF
   let newY = y
   if (newX > XEND) {
     newX = XSTART 
     newY = y + CHART_Y_DIFF
-  }
-  if (newY > YEND) {
-    newY = YSTART2
   }
 
   let final = <>
@@ -180,6 +177,14 @@ function showChart(chart: Chart, tuning: [string, string, string, string, string
   
 
   return [final, newX, newY]
+
+}
+
+
+
+function showLyrics(line: Line, x: number, y: number) : [ReactElement, number, number] {
+
+  return [<></>, x, y]
 
 }
 
@@ -220,7 +225,7 @@ export default function show(optionsR: OptionsRecord, charts: Chart[], lines: Li
   // Draw the options
   const optionsCode = showOptions(optionsR)
 
-  // Draw charts
+  /* ------------------------------- Draw charts ------------------------------ */
   let chartCodes : ReactElement[] = []
   let x = XSTART
   let y = YSTART1
@@ -234,16 +239,93 @@ export default function show(optionsR: OptionsRecord, charts: Chart[], lines: Li
     x = newX 
     y = newY
 
+    // If y is past endY, start a new page
+    if (y > YEND) {
+      const svg = <svg viewBox={`0 0 ${PAPERWIDTH} ${PAPERHEIGHT}`}>
+        <style>{style}</style>
+        {defs}
+        {pageNumber === 1 && optionsCode}
+        {
+          chartCodes.map((c,i) => {
+            return <Fragment key={i}>
+              {c}
+            </Fragment>
+          })
+        }
+      </svg>
+
+      svgs.push(svg)
+      pageNumber++
+      y = YSTART2
+      chartCodes = []
+    }
   })
 
+
+  /* ------------------------------- Draw lyrics ------------------------------ */
+
+  let lineCodes : ReactElement[] = []
+
+  lines.forEach(l => {
+
+    let lineCode : ReactElement
+    let newX : number 
+    let newY : number 
+    [lineCode, newX, newY] = showLyrics(l, x, y)
+
+
+    lineCodes.push(lineCode)
+    x = newX
+    y = newY
+
+    // If past YEND, start a new page
+    if (y > YEND) {
+      const svg = <svg viewBox={`0 0 ${PAPERWIDTH} ${PAPERHEIGHT}`}>
+        <style>{style}</style>
+        {defs}
+        {pageNumber === 1 && optionsCode}
+        {
+          chartCodes.length > 0 && chartCodes.map((c,i) => {
+            return <Fragment key={i}>
+              {c}
+            </Fragment>
+          })
+        }
+        {
+          lineCodes.map((l, i) => {
+            return <Fragment key={i}>
+              {l}
+            </Fragment>
+          })
+        }
+      </svg>
+
+      svgs.push(svg)
+      pageNumber++
+      y = YSTART2
+      chartCodes = []
+      lineCodes = []
+    }
+
+  })
+
+
+  // Whatever is leftover
   const svg = <svg viewBox={`0 0 ${PAPERWIDTH} ${PAPERHEIGHT}`}>
     <style>{style}</style>
     {defs}
-    {optionsCode}
+    {pageNumber === 1 && optionsCode}
     {
-      chartCodes.map((c,i) => {
+      chartCodes.length > 0 && chartCodes.map((c,i) => {
         return <Fragment key={i}>
           {c}
+        </Fragment>
+      })
+    }
+    {
+      lineCodes.length > 0 && lineCodes.map((l, i) => {
+        return <Fragment key={i}>
+          {l}
         </Fragment>
       })
     }
