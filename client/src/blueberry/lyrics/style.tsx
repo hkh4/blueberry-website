@@ -42,4 +42,12 @@ line, path {
   stroke-width: 5.6px;
   stroke-linecap: round;
 }
+
+.lyric-line {
+  font-size: 12px;
+}
+
+.lyric-chord {
+
+}
 `

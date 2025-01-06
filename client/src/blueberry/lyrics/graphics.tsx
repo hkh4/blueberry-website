@@ -5,6 +5,21 @@ import { defs } from "./svgDefs"
 import { PAPERHEIGHT, PAPERWIDTH, XSTART, XEND, YEND, YSTART1, YSTART2, CHART_X_DIFF, CHART_Y_DIFF } from "./constants"
 
 
+/* Remove any items at the end of the line list that are empty
+*/
+function removeEmptylines(lines: Line[]) : Line[] {
+
+  let i = lines.length - 1
+
+  while (i >= 0 && lines[i].trim() === "") {
+    i--
+  }
+
+  return lines.slice(0, i+1)
+
+}
+
+
 
 /* Figures out the range of frets in a chart, and what the lowest fret is
 notes: the barres, xs and dots in a chart
@@ -184,7 +199,69 @@ function showChart(chart: Chart, tuning: [string, string, string, string, string
 
 function showLyrics(line: Line, x: number, y: number) : [ReactElement, number, number] {
 
-  return [<></>, x, y]
+  // If the line is empty, just put in some space
+  if (line.trim() === "") {
+
+    y += 20
+    return [<></>, x, y]
+
+  }
+
+  // Get the indices of all the slashes
+  const regex = /\//g;
+  const slashes = [...line.matchAll(regex)].map(s => s.index)
+
+  // If there is an odd number of slashes, throw an error
+  if (slashes.length % 2 !== 0) {
+    throw new Error(`Error in this line: "${line}." Make sure there is an even number of slashes.`)
+  }
+
+  // First, create and write the text without the slashes
+  const textRegex = /\/[^\/]*\//g // matches slash, then 0+ characters that are anything EXCEPT slash, followed by another slash
+  const plainText = line.replace(textRegex, "")
+
+  const plainTextCode = <>
+    <text className="lyric-line" x={x} y={y + 13}>{plainText}</text>
+  </>
+
+  let chordCodes : ReactElement[] = []
+
+  //Loop through slashes and draw each chord
+  for (let i = 0; i < (slashes.length); i+=2) {
+    
+    // Get the chord item
+    const i1 = slashes?.[i] || 0 // optional chaining to get rid of TS "undefined" error
+    const i2 = slashes[i+1]
+    const chord = line.slice(i1 + 1, i2)
+    
+    // Everything up until the first slash, but without previous slashes
+    let others = line.slice(0, i1)
+    others = others.replace(textRegex, "")
+    
+    // Put them together, with the "others" being invisible
+    const chordCode = <>
+      <text x={x} y={y} className="lyric-chord">
+        <tspan fill="transparent" fontSize="12px">{others}</tspan>
+        <tspan fill="black" fontSize="10px" fontWeight="bold">{chord}</tspan>
+      </text>
+    </>
+
+    chordCodes.push(chordCode)
+
+  }
+
+  const finalCode = <>
+    {plainTextCode}
+    {chordCodes.map((c, i) => {
+      return <Fragment key={i}>
+        {c}
+      </Fragment>
+    })}
+  </>
+
+  y += 30
+
+  return [finalCode, x, y]
 
 }
 
@@ -265,6 +342,16 @@ export default function show(optionsR: OptionsRecord, charts: Chart[], lines: Li
   /* ------------------------------- Draw lyrics ------------------------------ */
 
   let lineCodes : ReactElement[] = []
+
+  // Adjust coordinates
+  x = XSTART
+  y = y + 110
+  if (y > YEND) {
+    y = YSTART2
+  }
+  
+  // Remove empty lines at the end, so there aren't unneeded empty pages
+  lines = removeEmptylines(lines)
 
   lines.forEach(l => {
 
