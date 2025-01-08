@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-d
 import "./App.scss";
 
 import Loading from "./components/Loading/Loading";
-import Header from "./components/Header";
+import Header from "./components/Heading/Header";
 
 import { useAuthContext } from "./hooks/useAuthContext";
 
@@ -16,7 +16,6 @@ const Error403 = lazy(() => import("./components/Errors/Error403"));
 const Error404 = lazy(() => import("./components/Errors/Error404"));
 const Error500 = lazy(() => import("./components/Errors/Error500"));
 const Signup = lazy(() => import("./components/Signup/Signup"));
-const Login = lazy(() => import("./components/Login/Login"));
 
 function App() {
 
@@ -34,8 +33,6 @@ function App() {
       <Header />
       <Suspense fallback={<Loading />}>
         <Routes>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/home" />} />
-
           <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/home" />} />
 
           <Route path="/400" element={<Error400 />} />

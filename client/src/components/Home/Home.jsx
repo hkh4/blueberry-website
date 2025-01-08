@@ -8,8 +8,8 @@ import {
 import { useAuthContext } from "./../../hooks/useAuthContext"
 
 const Document = lazy(() => import("./Document/Document"))
+const Dashboard = lazy(() => import("./Dashboard/Dashboard"))
 const Landing = lazy(() => import("./Landing/Landing"))
-const Welcome = lazy(() => import("./Welcome/Welcome"))
 const Super = lazy(() => import("./Super/Super"))
 
 function Home() {
@@ -25,7 +25,7 @@ function Home() {
 
         <Route path="/documents/:id" element={<Document />}/>
 
-        <Route path="/home" element={<Landing />}/>
+        <Route path="/home" element={<Dashboard />}/>
 
         <Route path="/super" element={<Super />}/>
 
@@ -34,7 +34,7 @@ function Home() {
       </Routes>
 
     ) : (
-      <Welcome />
+      <Landing />
     )}
     
     </>

@@ -1,0 +1,45 @@
+@use "./../../../App";
+
+
+.cover {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  background-color: gray;
+  opacity: 90%;
+
+  .confirmation {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.documents-table {
+  width: 100%;
+
+  th {
+    text-align: left;
+  }
+
+  .documents-table-title {
+    width: 50%;
+    text-overflow: ellipsis;
+  }
+
+  .documents-table-modified {
+    width: 25%;
+  }
+
+  .documents-table-actions {
+    width: 25%;
+  }
+}
+
+.link {
+  display: block;
+}

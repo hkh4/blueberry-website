@@ -1,0 +1,64 @@
+@use "./../../App";
+
+#header {
+  height: 120px;
+  padding: 20px;
+  position: relative;
+}
+
+#logo {
+  position: absolute;
+  left: 30px;
+  width: 200px;
+}
+
+#logo:hover {
+  cursor: pointer;
+}
+
+#buttons {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  button {
+    text-decoration: none;
+    height: 45px;
+    border: 1px solid App.$blue;
+    border-radius: 20px;
+    font-size: 14px;
+
+    a {
+      text-decoration: none;
+    }
+  }
+
+  #docs, #signup {
+    width: 170px;
+    background: white;
+  }
+  
+  #docs:hover, #signup:hover {
+    background-color: App.$blue;
+    color: white;
+  }
+  
+  #login {
+    width: 120px;
+    background-color: App.$blue;
+    color: white;
+  }
+
+  #login:hover {
+    background-color: white;
+    color: App.$blue;
+  }
+
+  button:hover {
+    cursor: pointer;
+  }
+  
+}
+
+
