@@ -1,8 +1,10 @@
-$header-font: "DM Mono", sans-serif;
+$header-font: "Bricolage Grotesque", serif;
 $para-font: "Noto Sans", sans-serif;
 $blue: #1E4266;
+$blue-transparent: #1E4266b0;
 $green: #577E0A;
 $gray: #F1F1F1;
+$dark-gray: #3C4257;
 
 @mixin center-v() {
   top: 50%;
@@ -37,6 +39,15 @@ a, a:hover, a:visited, a:active {
 
 .blue-text {
   color: $blue;
+}
+
+button {
+  text-decoration: none;
+  border: 1px solid $blue;
+}
+
+button:hover {
+  cursor: pointer;
 }
 
 

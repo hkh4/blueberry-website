@@ -23,9 +23,7 @@
   transform: translateY(-50%);
 
   button {
-    text-decoration: none;
     height: 45px;
-    border: 1px solid App.$blue;
     border-radius: 20px;
     font-size: 14px;
 
@@ -44,21 +42,17 @@
     color: white;
   }
   
-  #login {
+  #login, #logout {
     width: 120px;
     background-color: App.$blue;
     color: white;
   }
 
-  #login:hover {
-    background-color: white;
-    color: App.$blue;
+  #login:hover, #logout:hover {
+    background-color: App.$blue-transparent;
+    border: none;
   }
 
-  button:hover {
-    cursor: pointer;
-  }
-  
 }
 
 

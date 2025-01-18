@@ -1,10 +1,11 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 
 import "./App.scss";
 
 import Loading from "./components/Loading/Loading";
 import Header from "./components/Heading/Header";
+import Footer from "./components/Footer/Footer";
 
 import { useAuthContext } from "./hooks/useAuthContext";
 
@@ -16,10 +17,14 @@ const Error403 = lazy(() => import("./components/Errors/Error403"));
 const Error404 = lazy(() => import("./components/Errors/Error404"));
 const Error500 = lazy(() => import("./components/Errors/Error500"));
 const Signup = lazy(() => import("./components/Signup/Signup"));
+const Docs = lazy(() => import("./components/Docs/Docs"));
 
 function App() {
 
   const { user } = useAuthContext()
+
+  // Ref for the login box to scroll from the header or footer
+  const loginRef = useRef(null)
 
   // Redirect from www. if needed
   useEffect(() => {
@@ -30,7 +35,7 @@ function App() {
 
   return (
     <Router>
-      <Header />
+      <Header loginRef={loginRef} />
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/home" />} />
@@ -47,9 +52,12 @@ function App() {
 
           <Route path="/testing" element={<Testing />} />
 
-          <Route path="*" element={<Home />} />
+          <Route path="/docs" element={<Docs />} />
+
+          <Route path="*" element={<Home loginRef={loginRef} />} />
         </Routes>
       </Suspense>
+      <Footer loginRef={loginRef} />
     </Router>
   );
 }

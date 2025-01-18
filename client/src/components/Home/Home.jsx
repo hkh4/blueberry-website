@@ -12,7 +12,7 @@ const Dashboard = lazy(() => import("./Dashboard/Dashboard"))
 const Landing = lazy(() => import("./Landing/Landing"))
 const Super = lazy(() => import("./Super/Super"))
 
-function Home() {
+function Home({ loginRef }) {
 
   const { user } = useAuthContext()
 
@@ -34,7 +34,7 @@ function Home() {
       </Routes>
 
     ) : (
-      <Landing />
+      <Landing loginRef={loginRef} />
     )}
     
     </>

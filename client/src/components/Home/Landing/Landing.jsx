@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import "./Landing.scss"
 
-function Welcome() {
+function Landing({ loginRef }) {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -45,8 +45,7 @@ function Welcome() {
       </div>
 
 
-
-      <div id="landing-login">
+      <div id="landing-login" ref={loginRef}>
         <div id="landing-login-text-box">
 
           <div id="landing-login-text">
@@ -57,21 +56,47 @@ function Welcome() {
 
         <div id="landing-login-form-box">
           <form id="login-form" onSubmit={handleSubmit}>
-            <label htmlFor="email">Email</label>
+            <label className="login-form-label" htmlFor="email">Email</label>
             <input
+              className="login-form-input"
               type="email"
               id="email"
               onChange={(e) => setEmail(e.target.value)}
               value={email}
             />
-            <label htmlFor="password">Password</label>
+            <div id="login-form-password-box">
+              <label htmlFor="password" className="login-form-label">Password</label>
+              <span>Forgot your password?</span>
+            </div>
             <input
+              className="login-form-input"
               type="password"
               id="password"
               onChange={(e) => setPassword(e.target.value)}
               value={password}
             />
-            <button disabled={isLoading}>Login</button>
+            
+            <div id="remember-div">
+              <input
+              id="remember"
+              type="checkbox"
+              />
+              <label htmlFor="remember" id="remember-label" className="login-form-label">Remember me on this device</label>
+            </div>
+
+            <button id="login-form-signin" disabled={isLoading}>
+              <span>Sign in</span>
+              <svg width="27" height="8" viewBox="0 0 27 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" clipRule="evenodd" d="M23.3006 0.46444L26.4826 3.64642C26.6778 3.84168 26.6778 4.15826 26.4826 4.35353L23.3006 7.53551C23.1053 7.73077 22.7888 7.73077 22.5935 7.53551C22.3982 7.34025 22.3982 7.02366 22.5935 6.8284L24.9219 4.49997H0V3.49997H24.9219L22.5935 1.17155C22.3982 0.976284 22.3982 0.659702 22.5935 0.46444C22.7888 0.269178 23.1053 0.269178 23.3006 0.46444Z" fill="white"/>
+              </svg>
+            </button>
+
+            <div id="login-form-create-account">
+              <span id="login-form-new">New to blueberry guitar?</span>
+              <span id="login-form-create-account-text" onClick={e => navigate("/signup")}>Create account</span>
+            </div>
+            
+            
             {error && <span className="error">{error}</span>}
           </form>
         </div>
@@ -82,4 +107,4 @@ function Welcome() {
   )
 }
 
-export default Welcome
+export default Landing

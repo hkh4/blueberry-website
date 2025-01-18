@@ -2,7 +2,7 @@
 
 #landing-top {
   display: flex;
-  padding: 30px 30px 0 30px;
+  padding: 35px 35px 0 35px;
   flex-direction: row;
 
   .landing-box {
@@ -33,7 +33,7 @@
   position: relative;
 
   img {
-    width: 90%;
+    width: 100%;
     height: auto;
     float: right;
   }
@@ -48,6 +48,7 @@
   display: flex;
   flex-direction: row;
   padding: 50px 0 50px 0;
+  margin-top: 30px;
 
   div {
     width: 50%;
@@ -59,15 +60,16 @@
     #landing-login-text {
       width: 400px;
       position: relative;
-      left: 50%;
-      transform: translateX(-30%);
+      left: 40px;
       font-size: 50px;
       font-family: App.$header-font;
+      line-height: 70px;
     }
   }
 
   #landing-login-form-box {
     position: relative;
+    padding-top: 10px;
 
     #login-form {
       position: relative;
@@ -83,8 +85,110 @@
     }
 
     label {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 300;
+      color: App.$dark-gray;
+    }
+
+    .login-form-label {
+      margin-bottom: 14px;
+    }
+
+    .login-form-input {
+      margin-bottom: 16px;
+      height: 44px;
+      border-radius: 4px;
+      fill: white;
+      border: 1px solid rgba(60, 66, 87, 0.16);
+      padding-left: 10px;
+    }
+
+    .login-form-input:active, .login-form-input:focus, .login-form-input:focus-visible {
+      outline: 4px solid rgba(58, 151, 212, 0.36);
+    }
+
+    #login-form-password-box {
+      display: flex;
+      align-items: space-between;
+      width: 100%;
+
+      label {
+        width: 50%;
+      }
+
+      span {
+        display: block;
+        font-family: App.$para-font;
+        font-size: 13px;
+        font-weight: 300;
+        width: 50%;
+        text-align: right;
+        cursor: pointer;
+      }
+    }
+
+    #remember-div {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 15px;
+
+      #remember {
+        width: unset;
+        margin-right: 10px;
+      }
+
+      #remember-label {
+        vertical-align: middle;
+        margin: 0;
+        font-weight: 200;
+      }
+    }
+  }
+
+  #login-form-signin {
+    width: 100%;
+    height: 53px;
+    background-color: App.$blue;
+    color: white;
+    font-size: 18px;
+    font-weight: 300;
+    font-family: App.$para-font;
+    text-align: left;
+    padding: 0 0 2px 29px;
+    border-radius: 50px;
+    border: none;
+    position: relative;
+
+    svg {
+      position: absolute;
+      right: 23px;
+      @include App.center-v();
+    }
+  }
+
+  #login-form-signin:hover {
+    background-color: App.$blue-transparent;
+  }
+
+  #login-form-create-account {
+    width: 100%;
+    font-size: 13px;
+    font-family: App.$para-font;
+    margin-top: 25px;
+
+    #login-form-new {
+      font-weight: 200;
+      margin-right: 30px;
+    }
+
+    #login-form-create-account-text {
+      font-weight: 400;
+      color: App.$blue;
+      cursor: pointer;
+    }
+
+    #login-form-create-account-text:hover {
+      color: App.$blue-transparent;
     }
   }
 }

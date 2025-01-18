@@ -4,7 +4,8 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 
 import "./Header.scss"
 
-function Header() {
+function Header({ loginRef }) {
+
   const { logout } = useLogout();
   const navigate = useNavigate();
   const { user } = useAuthContext();
@@ -14,36 +15,37 @@ function Header() {
     navigate("/home");
   };
 
-  const goHome = () => {
-    navigate("/home");
-  };
+  // Scroll to login when button is clicked
+  const scrollToLogin = () => {
+    loginRef.current.scrollIntoView({ behavior: "smooth" })
+  }
 
   return (
     <div id="header">
 
-      <nav>
+      <img src="img/logo.png" id="logo" onClick={e => navigate("/home")} />
+
+      <div id="buttons">
+
+        <button id="docs">
+            <Link to="/docs">get started</Link>
+          </button>
+
         {user ? (
-          <div>
-            <Link to="/home">Home</Link>
-            <button onClick={handleLogout}>Log out</button>
-          </div>
+          <>
+          <button id="logout" onClick={handleLogout}>Log out</button>
+          </>
         ) : (
-          <div>
-            <img src="img/logo.png" id="logo" onClick={goHome} />
-
-            <div id="buttons">
-              <button id="docs">
-                <Link to="/login">get started</Link>
-              </button>
-              <button id="signup">
-                <Link to="/signup">sign up</Link>
-              </button>
-              <button id="login">login</button>
-            </div>
-
-          </div>
+          <>
+          <button id="signup" onClick={e => navigate("/signup")}>
+            <Link to="/signup">sign up</Link>
+          </button>
+          <button id="login" onClick={e => scrollToLogin()}>login</button>
+          </>
         )}
-      </nav>
+
+      </div>
+
     </div>
   );
 }
