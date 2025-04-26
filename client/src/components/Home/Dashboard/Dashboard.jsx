@@ -4,8 +4,8 @@ import { v4 as uuidV4 } from "uuid";
 import axios from "axios";
 
 import { useDocumentsContext } from "../../../hooks/useDocumentsContext";
-import { useAuthContext } from "../../../hooks/useAuthContext" 
-import errorHandling from "../../../helpers/errorHandling"; 
+import { useAuthContext } from "../../../hooks/useAuthContext"
+import errorHandling from "../../../helpers/errorHandling";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
@@ -13,7 +13,7 @@ import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import "./Dashboard.scss"
 
 function Dashboard() {
-    
+
   const { documents, dispatch } = useDocumentsContext();
   const [tabDocuments, setTabDocuments] = useState([])
   const [lyricDocuments, setLyricDocuments] = useState([])
@@ -43,7 +43,7 @@ function Dashboard() {
             cancel = c;
           }),
           headers: {
-            "Authorization" : `Bearer ${user.token}`
+            "Authorization": `Bearer ${user.token}`
           }
         });
 
@@ -97,7 +97,7 @@ function Dashboard() {
         type: docType
       }, {
         headers: {
-          "Authorization" : `Bearer ${user.token}`
+          "Authorization": `Bearer ${user.token}`
         }
       });
 
@@ -114,7 +114,7 @@ function Dashboard() {
   // function to delete a document when the trash can is clicked
   const deleteDocument = async () => {
 
-    if (!user) return 
+    if (!user) return
 
     const id = toDelete
 
@@ -123,7 +123,7 @@ function Dashboard() {
       // Delete the doc
       const response = await axios.delete(`/api/documents/${id}`, {
         headers: {
-          "Authorization" : `Bearer ${user.token}`
+          "Authorization": `Bearer ${user.token}`
         }
       })
 
@@ -134,7 +134,7 @@ function Dashboard() {
         setCover(false)
       }
 
-    } catch(e) {
+    } catch (e) {
       errorHandling(e)
     }
   }
@@ -147,7 +147,7 @@ function Dashboard() {
         ) : (
 
           <div>
-            { cover &&
+            {cover &&
               <div className="cover">
                 <div className="confirmation">
                   <span>Are you sure?</span>
@@ -160,84 +160,90 @@ function Dashboard() {
               </div>
             }
 
-            <div>
-              <h2>Tabs</h2>
-              <table className="documents-table">
-                <tbody>
-                  <tr>
-                    <th className="documents-table-title">Title</th>
-                    <th className="documents-table-modified">Last Modified</th>
-                    <th className="documents-table-actions">Actions</th>
-                  </tr>
-                
-                  {tabDocuments.map((d) => {
+            <div id="dashboard">
 
-                    let date = new Date(d.updatedAt)
-                    let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
+              <div id="dashboard-side">
+                <div id="dashboard-side-extra"></div>
+              </div>
 
-                    return (
-                      <tr key={d._id}>
-                        <td>
-                          <Link
-                            className="link"
-                            to={`/documents/${d._id}`}
-                          >{`${d.title}`}</Link>
-                        </td>
-                        <td>{`${dateString}`}</td>
-                        <td>
-                          <span onClick={e => {
-                            setCover(true)
-                            setToDelete(d._id)
-                          }}>
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+              <div>
+                <h2>Tabs</h2>
+                <table className="documents-table">
+                  <tbody>
+                    <tr>
+                      <th className="documents-table-title">Title</th>
+                      <th className="documents-table-modified">Last Modified</th>
+                      <th className="documents-table-actions">Actions</th>
+                    </tr>
 
-                </tbody>
-              </table>
-              <button onClick={() => openNewDocument("tab")}>New</button>
+                    {tabDocuments.map((d) => {
+
+                      let date = new Date(d.updatedAt)
+                      let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
+
+                      return (
+                        <tr key={d._id}>
+                          <td>
+                            <Link
+                              className="link"
+                              to={`/documents/${d._id}`}
+                            >{`${d.title}`}</Link>
+                          </td>
+                          <td>{`${dateString}`}</td>
+                          <td>
+                            <span onClick={e => {
+                              setCover(true)
+                              setToDelete(d._id)
+                            }}>
+                              <FontAwesomeIcon icon={faTrashCan} />
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                  </tbody>
+                </table>
+                <button onClick={() => openNewDocument("tab")}>New</button>
+              </div>
+
+              <div>
+                <h2>Lyrics</h2>
+                <table className="documents-table">
+                  <tbody>
+
+                    {lyricDocuments.map((d) => {
+
+                      let date = new Date(d.updatedAt)
+                      let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
+
+                      return (
+                        <tr key={d._id}>
+                          <td>
+                            <Link
+                              className="link"
+                              to={`/documents/${d._id}`}
+                            >{`${d.title}`}</Link>
+                          </td>
+                          <td>{`${dateString}`}</td>
+                          <td>
+                            <span onClick={e => {
+                              setCover(true)
+                              setToDelete(d._id)
+                            }}>
+                              <FontAwesomeIcon icon={faTrashCan} />
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                  </tbody>
+                </table>
+                <button onClick={() => openNewDocument("lyric")}>New</button>
+              </div>
             </div>
 
-            
-
-            <div>
-              <h2>Lyrics</h2>
-              <table className="documents-table">
-                <tbody>
-                
-                  {lyricDocuments.map((d) => {
-
-                    let date = new Date(d.updatedAt)
-                    let dateString = date.toDateString() + " " + date.toTimeString().slice(0, 8)
-
-                    return (
-                      <tr key={d._id}>
-                        <td>
-                          <Link
-                            className="link"
-                            to={`/documents/${d._id}`}
-                          >{`${d.title}`}</Link>
-                        </td>
-                        <td>{`${dateString}`}</td>
-                        <td>
-                          <span onClick={e => {
-                            setCover(true)
-                            setToDelete(d._id)
-                          }}>
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                </tbody>
-              </table>
-              <button onClick={() => openNewDocument("lyric")}>New</button>
-            </div>
 
           </div>
         )}

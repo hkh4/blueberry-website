@@ -6,6 +6,8 @@ $green: #577E0A;
 $gray: #F1F1F1;
 $dark-gray: #3C4257;
 
+$header-height: 130px;
+
 @mixin center-v() {
   top: 50%;
   transform: translateY(-50%);
@@ -49,6 +51,169 @@ button {
 button:hover {
   cursor: pointer;
 }
+
+
+
+/* -------------------------------------------------------------------------- */
+/*                                  Auth Box                                  */
+/* -------------------------------------------------------------------------- */
+
+
+.auth-box {
+  width: 100%;
+  height: 450px;
+  background-color: $gray;
+  border-radius: 50px;
+  display: flex;
+  flex-direction: row;
+  padding: 50px 0 50px 0;
+  margin-top: 30px;
+
+  div {
+    width: 50%;
+  }  
+
+  .auth-text-box {
+    position: relative;
+
+    .auth-text {
+      width: 400px;
+      position: relative;
+      left: 40px;
+      font-size: 50px;
+      font-family: $header-font;
+      line-height: 70px;
+    }
+  }
+
+  .auth-form-box {
+    position: relative;
+    padding-top: 10px;
+
+    .auth-form {
+      position: relative;
+      width: 50%;
+      min-width: 400px;
+      @include center-h();
+    }
+
+    label, input {
+      display: block;
+      width: 100%;
+      font-family: $para-font;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 300;
+      color: $dark-gray;
+    }
+
+    .auth-form-label {
+      margin-bottom: 14px;
+    }
+
+    .auth-form-input {
+      margin-bottom: 16px;
+      height: 44px;
+      border-radius: 4px;
+      fill: white;
+      border: 1px solid rgba(60, 66, 87, 0.16);
+      padding-left: 10px;
+    }
+
+    .auth-form-input:active, .auth-form-input:focus, .auth-form-input:focus-visible {
+      outline: 4px solid rgba(58, 151, 212, 0.36);
+    }
+
+    .auth-form-password-box {
+      display: flex;
+      align-items: space-between;
+      width: 100%;
+
+      label {
+        width: 50%;
+      }
+
+      span {
+        display: block;
+        font-family: $para-font;
+        font-size: 13px;
+        font-weight: 300;
+        width: 50%;
+        text-align: right;
+        cursor: pointer;
+      }
+    }
+
+    .remember-div {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 15px;
+
+      .remember {
+        width: unset;
+        margin-right: 10px;
+      }
+
+      .remember-label {
+        vertical-align: middle;
+        margin: 0;
+        font-weight: 200;
+      }
+    }
+  }
+
+  .auth-form-signin {
+    width: 100%;
+    height: 53px;
+    background-color: $blue;
+    color: white;
+    font-size: 18px;
+    font-weight: 300;
+    font-family: $para-font;
+    text-align: left;
+    padding: 0 0 2px 29px;
+    border-radius: 50px;
+    border: none;
+    position: relative;
+
+    svg {
+      position: absolute;
+      right: 23px;
+      @include center-v();
+    }
+  }
+
+  .auth-form-signin:hover {
+    background-color: $blue-transparent;
+  }
+
+  .auth-form-create-account {
+    width: 100%;
+    font-size: 13px;
+    font-family: $para-font;
+    margin-top: 25px;
+
+    .auth-form-new {
+      font-weight: 200;
+      margin-right: 30px;
+    }
+
+    .auth-form-create-account-text {
+      font-weight: 400;
+      color: $blue;
+      cursor: pointer;
+    }
+
+    .auth-form-create-account-text:hover {
+      color: $blue-transparent;
+    }
+  }
+}
+
+
+
 
 
 /* -------------------------------------------------------------------------- */

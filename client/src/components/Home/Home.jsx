@@ -25,11 +25,11 @@ function Home({ loginRef }) {
 
         <Route path="/documents/:id" element={<Document />}/>
 
-        <Route path="/home" element={<Dashboard />}/>
+        <Route path="/dashboard" element={<Dashboard />}/>
 
         <Route path="/super" element={<Super />}/>
 
-        <Route path="*" element={<Navigate to="/home" replace />}/>
+        <Route path="*" element={<Navigate to="/dashboard" replace />}/>
 
       </Routes>
 

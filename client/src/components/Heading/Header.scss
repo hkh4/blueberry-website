@@ -1,15 +1,16 @@
 @use "./../../App";
 
 #header {
-  height: 120px;
-  padding: 20px;
+  height: App.$header-height;
+  padding: 30px;
   position: relative;
 }
 
 #logo {
   position: absolute;
-  left: 30px;
+  left: 35px;
   width: 200px;
+  z-index: 999;
 }
 
 #logo:hover {

@@ -19,6 +19,32 @@
   }
 }
 
+#dashboard {
+  display: flex;
+  position: relative;
+  flex-direction: row;
+
+  #dashboard-side {
+    width: 282px;
+    height: calc(100vh - App.$header-height - 20px);
+    background-color: App.$gray;
+    position: relative;
+    border-radius: 0 0 10px 10px;
+
+    #dashboard-side-extra {
+      width: 282px;
+      height: calc(App.$header-height - 20px);
+      position: absolute;
+      background-color: App.$gray;
+      top: calc(-1 * App.$header-height + 20px);
+      border-radius: 10px 10px 0 0;
+    }
+  }
+}
+
+
+
+
 .documents-table {
   width: 100%;
 

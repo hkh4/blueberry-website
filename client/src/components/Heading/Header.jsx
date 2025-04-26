@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useLogout } from "../../hooks/useLogout";
 import { useAuthContext } from "../../hooks/useAuthContext";
 
@@ -9,6 +9,7 @@ function Header({ loginRef }) {
   const { logout } = useLogout();
   const navigate = useNavigate();
   const { user } = useAuthContext();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -19,8 +20,9 @@ function Header({ loginRef }) {
   const scrollToLogin = () => {
     loginRef.current.scrollIntoView({ behavior: "smooth" })
   }
-
+ 
   return (
+
     <div id="header">
 
       <img src="img/logo.png" id="logo" onClick={e => navigate("/home")} />
@@ -47,6 +49,7 @@ function Header({ loginRef }) {
       </div>
 
     </div>
+
   );
 }
 

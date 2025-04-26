@@ -124,8 +124,8 @@ function Editor({
           measureNumber++
           newLines.push(newL) 
 
-        } else if (l.includes("-")) {
-          // If there's a dash, it must be an option
+        } else if (l.includes("-") && !l.includes("$")) {
+          // If there's a dash but no $, it must be an option
           newLines.push(l.trim())
 
         } else {
