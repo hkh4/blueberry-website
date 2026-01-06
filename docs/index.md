@@ -773,15 +773,12 @@ Just like in score mode, there are a number of valid options.
 
 ## Chord Charts
 
-All chords begin with a set of brackets, inside which are 3 parts: the title, a list of barres, and a list of spots. Each barre contains information on what fret the barre is, and what strings it covers (1 is the low E, 6 is the high E). Spots are of the form `<string>-<fret>`. The fret can also be an `X`, which will show up on the chart as an X on top of the string (means do not play this string). Any string that is not touched by a spot or a barre will be open be default. Also note that the maximum difference between the lowest and highest fret in one chart is 4.
+All chords begin with a set of brackets, inside which are 3 parts: the title, a list of barres, and a list of spots. Each barre contains information on what fret the barre is, and what strings it covers (1 is the low E, 6 is the high E). A barre is of the form 1-6-3 where the first two numbers are the string range and the final is the fret. Spots are of the form `<string>-<fret>`. The fret can also be an `X`, which will show up on the chart as an X on top of the string (means do not play this string). Any string that is not touched by a spot or a barre will be open be default. Also note that the maximum difference between the lowest and highest fret in one chart is 4.
 
    ```
    [
    title: Not a real chord
-   barre: [
-   fret: 2
-   strings: 2-6
-   ]
+   2-6-2
    2-5
    4-4
    1-X
