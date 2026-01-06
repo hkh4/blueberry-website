@@ -30,8 +30,8 @@ function Header({ loginRef }) {
       <div id="buttons">
 
         <button id="docs">
-            <Link to="/docs">get started</Link>
-          </button>
+          <a href="https://docs.blueberryguitar.com">get started</a>
+        </button>
 
         {user ? (
           <>

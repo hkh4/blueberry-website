@@ -14,94 +14,6 @@ With a simple syntax, blueberry lets you focus on the music, and not on annoying
 
 &nbsp;
 
-# Usage
-
-In order to run the program, you need to have [.NET](https://dotnet.microsoft.com/) and [Ghostscript](https://www.ghostscript.com/) installed. Follow the instructions for downloading and setup.
-
-## Mac
-
-Download the packages above and clone this repo into an easily accessible location.
-
-### Running Within the Blueberry Folder
-
-1. The quickest way to run the program is directly in the cloned repo. Open terminal, and navigate to the lang folder within blueberry.
-
-   ```shell
-   cd path-to-folder/blueberry/lang
-   ```
-
-2. Create a new file to write your code in. I suggest using the .blb extension for ease-of-use, but any extension works.
-
-3. Run using dotnet. It will create a .ps file with the specified name.
-
-   ```shell
-   dotnet run <mode> <filename> <output filename>
-   ```
-
-4. Use ps2pdf, a command line tool from Ghostscript, to convert the postscript file to a pdf. If you get an error, you may need to add ghostscript to your PATH variable.
-
-   ```shell
-   ps2pdf -dNOSAFER <file>.ps
-   ```
-### Running From Separate Folder
-
-1. To run the program on files in a separate folder, I suggest writing a custom script to do the job for you. Follow [this link](https://medium.com/devnetwork/how-to-create-your-own-custom-terminal-commands-c5008782a78e) for instructions on how to set up a file with custom scripts. Once created, add the following, replacing PATHTOFILE with the path to wherever you cloned the blueberry folder:
-
-   ```shell
-   function pspdf() {
-      ps2pdf -dNOSAFER $1.ps
-      open $1.pdf
-   }
-
-   function blbscore() {
-      if [[ "$#" == 0 ]]; then
-      echo 'Usage: blbscore <file with code> <name of output file>'
-      return 0
-      fi
-      if [ -z "$2" ]
-        then
-            OUTFILE='score'
-      else
-        OUTFILE=$2
-      fi
-      cwd=$(pwd)
-      cd ~/PATH_TO_REPO
-      dotnet run score $cwd/$1 $OUTFILE
-      pspdf $OUTFILE
-      rm $OUTFILE.ps
-      mv $OUTFILE.pdf $cwd
-      cd $cwd
-   }
-
-   function blbtab() {
-      if [[ "$#" == 0 ]]; then
-      echo 'Usage: blbtab <file with code> <name of output file>'
-      return 0
-      fi
-      if [ -z "$2" ]
-      then
-      OUTFILE='tab'
-      else
-      OUTFILE=$2
-      fi
-      cwd=$(pwd)
-      cd ~/PATH_TO_REPO
-      dotnet run tab $cwd/$1 $OUTFILE
-      pspdf $OUTFILE
-      rm $OUTFILE.ps
-      mv $OUTFILE.pdf $cwd
-      cd $cwd
-
-   }
-   ```
-Now, you can create files anywhere on your computer, and run it using `blbtab <filename> <outputFile>` or `blbscore <filename> <outputFile>`!
-
-## Windows
-
-Download the packages above and clone this repo into an easily accessible location. In addition, make sure you have [Virtual Studio Code](https://code.visualstudio.com/).
-
-The instructions for running within the blueberry folder should be the same as for Mac users. Use the terminal function within VsCode. In addition, check out this [post](https://stackoverflow.com/questions/6011373/call-ghostscript-in-windows-by-its-invocation-name#:~:text=Open%20a%20cmd%20window%20and,64%20bit%20Windows) for how to use the ghostscript functions in the terminal. I'm not familiar with scripting on Windows and how to create a script to run the program from other folders.
-
 # Score-Mode Documentation
 
 ## Basic Syntax
@@ -636,6 +548,9 @@ Properties for the whole group:
 - `/pld`
 - `/sls`
 - `/sle`
+- `/plm`
+- `/pl1`
+- `/pl2`
 
 Properties for individual notes:
 - `/par`
@@ -645,6 +560,7 @@ Properties for individual notes:
 - `/tie`
 - `/har`
 - `/^`
+- `/ham`
 
 ## Changing Key, Capo, Time Signature
 
